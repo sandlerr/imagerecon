@@ -1,18 +1,13 @@
 // imagereconstruction.cpp : Defines the entry point for the application.
 //
 
+#include <windows.foundation.h>
 #include "stdafx.h"
 #include "imagereconstruction.h"
 #include <shobjidl.h>     // for IFileDialogEvents and IFileDialogControlEvents
 
 
 #define MAX_LOADSTRING 100
-
-struct COMDLG_FILTERSPEC
-{
-  LPCWSTR pszName;
-  LPCWSTR pszSpec;
-};
 
 // Global Variables:
 HINSTANCE hInst;								// current instance
@@ -24,6 +19,7 @@ ATOM				MyRegisterClass(HINSTANCE hInstance);
 BOOL				InitInstance(HINSTANCE, int);
 LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
+PWSTR setangle();
 
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -136,7 +132,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	int wmId, wmEvent;
 	PAINTSTRUCT ps;
 	HDC hdc;
-
+	PWSTR angle;
 	switch (message)
 	{
 	case WM_COMMAND:
@@ -152,8 +148,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			DestroyWindow(hWnd);
 			break;
 		case SELECT_ANGLEDATA:
-			Beep(40,50);
-			angleselect();
+			// select an angle file
+			angle = setangle();
 			break;
 		default:
 			return DefWindowProc(hWnd, message, wParam, lParam);
@@ -199,24 +195,47 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 	return (INT_PTR)FALSE;
 }
 
-	void CMainDlg::OnFileOpen()
+PWSTR setangle()
 {
-HRESULT hr;
-CComPtr<IFileOpenDialog> pDlg;
-COMDLG_FILTERSPEC aFileTypes[] = {
-    { L"Text files", L"*.txt" },
-    { L"Executable files", L"*.exe;*.dll" }, 
-    { L"All files", L"*.*" }
-  };
- 
-  // Create the file-open dialog COM object.
-  hr = pDlg.CoCreateInstance ( __uuidof(FileOpenDialog) );
- 
-  if ( FAILED(hr) )
-    return;
- 
-  // Set the dialog's caption text and the available file types.
-  // NOTE: Error handling omitted here for clarity.
-  pDlg->SetFileTypes ( _countof(aFileTypes), aFileTypes );
-  pDlg->SetTitle ( L"A Single-Selection Dialog" );
+	//HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+	HRESULT hr = CoInitializeEx (NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+	PWSTR retval;
+	if (SUCCEEDED(hr))
+	{
+		IFileOpenDialog *pFileOpen;
+
+		// Create the FileOpenDialog object.
+		hr = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL,
+			IID_IFileOpenDialog, reinterpret_cast<void**>(&pFileOpen));
+
+		if (SUCCEEDED(hr))
+		{
+			// Show the Open dialog box.
+			hr = pFileOpen->Show(NULL);
+
+			// Get the file name from the dialog box.
+			if (SUCCEEDED(hr))
+			{
+				IShellItem *pItem;
+				hr = pFileOpen->GetResult(&pItem);
+				if (SUCCEEDED(hr))
+				{
+					PWSTR pszFilePath;
+					hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
+
+					// Display the file name to the user.
+					if (SUCCEEDED(hr))
+					{
+						MessageBox(NULL, pszFilePath, L"File Path", MB_OK);
+						retval = pszFilePath;
+						CoTaskMemFree(pszFilePath);
+					}
+					pItem->Release();
+				}
+			}
+			pFileOpen->Release();
+		}
+		CoUninitialize();
+	}
+	return retval;
 }

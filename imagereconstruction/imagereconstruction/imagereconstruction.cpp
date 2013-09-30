@@ -5,6 +5,7 @@
 #include "imagereconstruction.h"
 #include "fileIO.h"
 #include "dataOp.h"
+#include <string>
 
 
 #define MAX_LOADSTRING 100
@@ -13,6 +14,7 @@
 HINSTANCE hInst;								// current instance
 TCHAR szTitle[MAX_LOADSTRING];					// The title bar text
 TCHAR szWindowClass[MAX_LOADSTRING];			// the main window class name
+angleSet angles;
 
 // Forward declarations of functions included in this code module:
 ATOM				MyRegisterClass(HINSTANCE hInstance);
@@ -27,7 +29,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 {
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
-
+	
  	// TODO: Place code here.
 	MSG msg;
 	HACCEL hAccelTable;
@@ -102,7 +104,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
    hInst = hInstance; // Store instance handle in our global variable
 
-   hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
+   hWnd = CreateWindowEx(WS_EX_OVERLAPPEDWINDOW, szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
       CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL, hInstance, NULL);
 
    if (!hWnd)
@@ -132,7 +134,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	PAINTSTRUCT ps;
 	HDC hdc;
 	HANDLE angleFile;
-	angleSet angles;
+	
 	switch (message)
 	{
 	case WM_COMMAND:
@@ -151,7 +153,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			// select an angle file
 			angleFile = findAngleFile();
 			angles = angleSet::angleSet(angleFile);
+			PostMessage(hWnd,WM_COMMAND,PRINT_ANGLES,NULL);
 			break;
+		case PRINT_ANGLES:
+			CreateWindowW(L"button", L"View Angle Data",
+				WS_VISIBLE | WS_CHILD,
+				200, 50, 160, 25,
+				hWnd, (HMENU) 203, NULL, NULL);
+			break;
+		case 203:
+			CreateWindowEx(NULL, L"Static", std::to_wstring(angles.getProjection(5)).c_str(),
+				WS_CHILD | WS_VISIBLE | WS_BORDER,
+				200, 50, 200, 150, hWnd, (HMENU) 202,
+				NULL, NULL);
 		default:
 			return DefWindowProc(hWnd, message, wParam, lParam);
 		}

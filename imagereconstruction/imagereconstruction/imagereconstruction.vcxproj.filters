@@ -30,11 +30,11 @@
     <ClInclude Include="imagereconstruction.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="fileIO.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="dataOp.h">
-      <Filter>Source Files</Filter>
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fileIO.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

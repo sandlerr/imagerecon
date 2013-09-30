@@ -134,7 +134,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	PAINTSTRUCT ps;
 	HDC hdc;
 	HANDLE angleFile;
-	
+	LPCWSTR test;
 	switch (message)
 	{
 	case WM_COMMAND:
@@ -162,7 +162,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				hWnd, (HMENU) 203, NULL, NULL);
 			break;
 		case 203:
-			CreateWindowEx(NULL, L"Static", std::to_wstring(angles.getProjection(5)).c_str(),
+			test=angles.getProjectionList();
+			CreateWindowEx(NULL, L"Static", test,
 				WS_CHILD | WS_VISIBLE | WS_BORDER,
 				200, 50, 200, 150, hWnd, (HMENU) 202,
 				NULL, NULL);

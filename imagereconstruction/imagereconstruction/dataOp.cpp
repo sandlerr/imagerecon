@@ -42,3 +42,13 @@ float angleSet::getProjection(int num)
 {
 	return projection[num];
 }
+LPCWSTR angleSet::getProjectionList()
+{
+	std::wstring angleList;
+	for (int i = 0; i < 3; i++)
+	{
+		angleList += std::to_wstring(projection[i]) + L"\n";
+	}
+	LPCWSTR retval = angleList.c_str();
+	return angleList.c_str();
+}

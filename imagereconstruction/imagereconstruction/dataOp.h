@@ -6,5 +6,5 @@ public:
 	angleSet(HANDLE angleFile);
 	int getProjectionNum();
 	float getProjection(int num);
-
+	LPCWSTR getProjectionList();
 };

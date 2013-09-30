@@ -1,10 +1,10 @@
 // imagereconstruction.cpp : Defines the entry point for the application.
 //
 
-#include <windows.foundation.h>
 #include "stdafx.h"
 #include "imagereconstruction.h"
-#include <shobjidl.h>     // for IFileDialogEvents and IFileDialogControlEvents
+#include "fileIO.h"
+#include "dataOp.h"
 
 
 #define MAX_LOADSTRING 100
@@ -19,7 +19,6 @@ ATOM				MyRegisterClass(HINSTANCE hInstance);
 BOOL				InitInstance(HINSTANCE, int);
 LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
-PWSTR setangle();
 
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -132,7 +131,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	int wmId, wmEvent;
 	PAINTSTRUCT ps;
 	HDC hdc;
-	PWSTR angle;
+	HANDLE angleFile;
+	angleSet angles;
 	switch (message)
 	{
 	case WM_COMMAND:
@@ -149,7 +149,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			break;
 		case SELECT_ANGLEDATA:
 			// select an angle file
-			angle = setangle();
+			angleFile = findAngleFile();
+			angles = angleSet::angleSet(angleFile);
 			break;
 		default:
 			return DefWindowProc(hWnd, message, wParam, lParam);
@@ -193,49 +194,4 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 	}
 	return (INT_PTR)FALSE;
-}
-
-PWSTR setangle()
-{
-	//HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
-	HRESULT hr = CoInitializeEx (NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
-	PWSTR retval;
-	if (SUCCEEDED(hr))
-	{
-		IFileOpenDialog *pFileOpen;
-
-		// Create the FileOpenDialog object.
-		hr = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL,
-			IID_IFileOpenDialog, reinterpret_cast<void**>(&pFileOpen));
-
-		if (SUCCEEDED(hr))
-		{
-			// Show the Open dialog box.
-			hr = pFileOpen->Show(NULL);
-
-			// Get the file name from the dialog box.
-			if (SUCCEEDED(hr))
-			{
-				IShellItem *pItem;
-				hr = pFileOpen->GetResult(&pItem);
-				if (SUCCEEDED(hr))
-				{
-					PWSTR pszFilePath;
-					hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
-
-					// Display the file name to the user.
-					if (SUCCEEDED(hr))
-					{
-						MessageBox(NULL, pszFilePath, L"File Path", MB_OK);
-						retval = pszFilePath;
-						CoTaskMemFree(pszFilePath);
-					}
-					pItem->Release();
-				}
-			}
-			pFileOpen->Release();
-		}
-		CoUninitialize();
-	}
-	return retval;
 }

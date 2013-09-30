@@ -30,12 +30,24 @@
     <ClInclude Include="imagereconstruction.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="fileIO.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dataOp.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="imagereconstruction.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fileIO.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dataOp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

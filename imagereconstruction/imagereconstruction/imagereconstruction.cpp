@@ -5,9 +5,11 @@
 #include "imagereconstruction.h"
 #include "fileIO.h"
 #include "dataOp.h"
+#include "display.h"
 #include <string>
+#include <iostream>
 
-
+using namespace std;
 #define MAX_LOADSTRING 100
 
 // Global Variables:
@@ -134,7 +136,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	PAINTSTRUCT ps;
 	HDC hdc;
 	HANDLE angleFile;
-	LPCWSTR test;
+	wchar_t* test = new wchar_t;
+	std::vector<char *> projList;
+	HWND listbox;
+	int projListSize;
 	switch (message)
 	{
 	case WM_COMMAND:
@@ -162,16 +167,28 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				hWnd, (HMENU) 203, NULL, NULL);
 			break;
 		case 203:
-			test=angles.getProjectionList();
-			CreateWindowEx(NULL, L"Static", test,
+			projList = angles.getProjectionList();
+			mbstowcs(test,projList.at(0),6);
+			cls();
+			cout << "\n";
+			for (vector<char *>::const_iterator i = projList.begin();i!=projList.end();++i)
+			{
+				cout << *i << "\n";
+			}
+			cout << "\n";
+			cout << test;
+			listbox = CreateWindowEx(NULL, L"Static", test,
 				WS_CHILD | WS_VISIBLE | WS_BORDER,
 				200, 50, 200, 150, hWnd, (HMENU) 202,
 				NULL, NULL);
+			//SetWindowText(listbox,L"abc");
 		default:
 			return DefWindowProc(hWnd, message, wParam, lParam);
 		}
 		break;
 	case WM_PAINT:
+		AllocConsole();
+		freopen("CONOUT$","w",stdout);
 		hdc = BeginPaint(hWnd, &ps);
 		// TODO: Add any drawing code here...
 		EndPaint(hWnd, &ps);
@@ -183,6 +200,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
           hWnd, (HMENU) 201, NULL, NULL);
 		break;
 	case WM_DESTROY:
+		delete test;
 		PostQuitMessage(0);
 		break;
 	default:

@@ -78,6 +78,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dataOp.h" />
+    <ClInclude Include="display.h" />
     <ClInclude Include="fileIO.h" />
     <ClInclude Include="imagereconstruction.h" />
     <ClInclude Include="Resource.h" />
@@ -86,6 +87,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dataOp.cpp" />
+    <ClCompile Include="display.cpp" />
     <ClCompile Include="fileIO.cpp" />
     <ClCompile Include="imagereconstruction.cpp" />
     <ClCompile Include="stdafx.cpp">

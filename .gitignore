@@ -1,5 +1,6 @@
 imagereconstruction/imagereconstruction/Debug
 #OS junk files
+imagereconstruction/imagereconstruction/[Tt]humbs.db
 [Tt]humbs.db
 *.DS_Store
 #Visual Studio files

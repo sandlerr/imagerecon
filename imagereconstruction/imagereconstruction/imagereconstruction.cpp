@@ -136,8 +136,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	PAINTSTRUCT ps;
 	HDC hdc;
 	HANDLE angleFile;
-	wchar_t* test = new wchar_t;
-	std::vector<char *> projList;
+	wstring projString;
+	vector<vector<char *> > projList;
 	HWND listbox;
 	int projListSize;
 	switch (message)
@@ -168,16 +168,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			break;
 		case 203:
 			projList = angles.getProjectionList();
-			mbstowcs(test,projList.at(0),6);
 			cls();
 			cout << "\n";
-			for (vector<char *>::const_iterator i = projList.begin();i!=projList.end();++i)
+			for (auto &i : projList)
 			{
-				cout << *i << "\n";
+				for (auto &j : i)
+				{
+					cout << *j;
+					projString += *j;
+				}
+				cout << "\n";
+				projString = projString + L"\n";
 			}
-			cout << "\n";
-			cout << test;
-			listbox = CreateWindowEx(NULL, L"Static", test,
+			
+			listbox = CreateWindowEx(NULL, L"Static", projString.c_str(),
 				WS_CHILD | WS_VISIBLE | WS_BORDER,
 				200, 50, 200, 150, hWnd, (HMENU) 202,
 				NULL, NULL);
@@ -200,7 +204,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
           hWnd, (HMENU) 201, NULL, NULL);
 		break;
 	case WM_DESTROY:
-		delete test;
 		PostQuitMessage(0);
 		break;
 	default:

@@ -36,7 +36,6 @@ HANDLE findAngleFile()
 						MessageBox(NULL, pszFilePath, L"File Path", MB_OK);
 						hFile = CreateFile(pszFilePath,GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
 						CoTaskMemFree(pszFilePath);
-
 					}
 					pItem->Release();
 				}

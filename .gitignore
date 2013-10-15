@@ -33,3 +33,8 @@ imagereconstruction/[Bb]in/
 imagereconstruction/[Dd]ebug*/
 imagereconstruction/[Rr]elease*/
 Ankh.NoLoad
+/imagereconstruction/packages/libjpeg.9.0.1.3
+/imagereconstruction/packages/libtiff.4.0.1.9
+/imagereconstruction/packages/libjpeg.redist.9.0.1.3
+/imagereconstruction/packages/libtiff.redist.4.0.1.9
+/imagereconstruction/packages

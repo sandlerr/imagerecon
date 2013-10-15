@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "fileIO.h"
 #include <shobjidl.h>     // for IFileDialogEvents and IFileDialogControlEvents
+#include <tiffio.h>
 
 HANDLE findAngleFile()
 {
@@ -45,4 +46,18 @@ HANDLE findAngleFile()
 		CoUninitialize();
 	}
 		return hFile;
+}
+
+int tiffop()
+{
+	TIFF* tif = TIFFOpen("C:\\Users\\Roman\\Documents\\uni\\FYP\\workingdata\\M12_159.vent.00.tif", "r");
+	int dircount = 0;
+	if (tif)
+	{
+		do {
+			dircount++;
+		} while (TIFFReadDirectory(tif));
+	}
+	TIFFClose(tif);
+	return dircount;
 }

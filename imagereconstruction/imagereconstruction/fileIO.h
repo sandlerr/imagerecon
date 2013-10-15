@@ -1,1 +1,2 @@
 HANDLE findAngleFile();
+int tiffop();

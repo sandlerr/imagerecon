@@ -9,7 +9,6 @@
 #include <string>
 #include <iostream>
 
-
 using namespace std;
 #define MAX_LOADSTRING 100
 
@@ -140,7 +139,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	wstring projString;
 	vector<vector<char> > projList;
 	HWND listbox = NULL;
-	int projListSize;
 	switch (message)
 	{
 	case WM_COMMAND:
@@ -169,6 +167,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				WS_VISIBLE | WS_CHILD,
 				200, 50, 160, 25,
 				hWnd, (HMENU) 203, NULL, NULL);
+			CreateWindowW(L"button", L"Count directories",
+				WS_VISIBLE | WS_CHILD,
+				200, 90, 160, 25,
+				hWnd, (HMENU) 204, NULL, NULL);
 			break;
 		case 203:
 			projList = angles.getProjectionList();
@@ -190,6 +192,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				200, 50, 200, 150, hWnd, (HMENU) 202,
 				NULL, NULL);
 			//SetWindowText(listbox,L"abc");
+			break;
+		case 204:
+			cout << endl << tiffop();
+			break;
 		default:
 			return DefWindowProc(hWnd, message, wParam, lParam);
 		}

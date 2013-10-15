@@ -1,4 +1,6 @@
 imagereconstruction/imagereconstruction/Debug
+imagereconstruction/imagereconstruction/[Rr]elease*/
+*.tlog
 #OS junk files
 imagereconstruction/imagereconstruction/[Tt]humbs.db
 *[Tt]humbs.db

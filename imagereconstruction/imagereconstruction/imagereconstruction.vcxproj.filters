@@ -71,6 +71,6 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <Library Include="..\..\tiff\lib\libtiff.lib" />
   </ItemGroup>
 </Project>

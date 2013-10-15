@@ -137,8 +137,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	HDC hdc;
 	HANDLE angleFile;
 	wstring projString;
-	vector<vector<char *> > projList;
-	HWND listbox;
+	vector<vector<char> > projList;
+	HWND listbox = NULL;
 	int projListSize;
 	switch (message)
 	{
@@ -157,8 +157,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case SELECT_ANGLEDATA:
 			// select an angle file
 			angleFile = findAngleFile();
-			angles = angleSet::angleSet(angleFile);
-			PostMessage(hWnd,WM_COMMAND,PRINT_ANGLES,NULL);
+			if (angleFile != INVALID_HANDLE_VALUE)
+			{
+				angles = angleSet::angleSet(angleFile);
+				PostMessage(hWnd,WM_COMMAND,PRINT_ANGLES,NULL);
+			}
 			break;
 		case PRINT_ANGLES:
 			CreateWindowW(L"button", L"View Angle Data",
@@ -174,15 +177,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			{
 				for (auto &j : i)
 				{
-					cout << *j;
-					projString += *j;
+					cout << j;
+					projString.push_back(j);
 				}
 				cout << "\n";
 				projString = projString + L"\n";
 			}
 			
 			listbox = CreateWindowEx(NULL, L"Static", projString.c_str(),
-				WS_CHILD | WS_VISIBLE | WS_BORDER,
+				WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOVSCROLL,
 				200, 50, 200, 150, hWnd, (HMENU) 202,
 				NULL, NULL);
 			//SetWindowText(listbox,L"abc");
@@ -206,6 +209,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
+	case WM_SIZE:
+        MoveWindow(listbox, 0, 0, LOWORD(lParam), HIWORD(lParam), TRUE);
+        return 0;
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}

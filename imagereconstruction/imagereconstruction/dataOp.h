@@ -7,5 +7,5 @@ public:
 	angleSet(HANDLE angleFile);
 	int getProjectionNum();
 	float getProjection(int num);
-	std::vector< std::vector<char *> > getProjectionList();
+	std::vector< std::vector<char> > getProjectionList();
 };

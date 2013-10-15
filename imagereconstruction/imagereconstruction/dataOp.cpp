@@ -57,19 +57,32 @@ float angleSet::getProjection(int num)
 {
 	return projection[num];
 }
-vector<vector<char *> > angleSet::getProjectionList()
+vector<vector<char> > angleSet::getProjectionList()
 {
-	vector<vector<char *> > angleList(projection.size(),vector<char *>(6));
+	vector<vector<char> > angleList(projection.size(),vector<char>(5));
 	char temp[6];
 	double dtemp;
 	for(int i=0;i<projection.size();i++)
 	{
 		dtemp=projection.at(i);
+		if (dtemp < 10)
+		{
 		sprintf(temp,"%4.3f",dtemp);
 		printf("%4.3f\n",dtemp);
-		for (int j=0;j<6;j++)
+		}
+		else if (dtemp < 100)
 		{
-			angleList.at(i).at(j)=&temp[j];
+		sprintf(temp,"%4.2f",dtemp);
+		printf("%4.2f\n",dtemp);
+		}
+		else
+		{
+		sprintf(temp,"%4.1f",dtemp);
+		printf("%4.1f\n",dtemp);
+		}
+		for (int j=0;j<5;j++)
+		{
+			angleList.at(i).at(j)=temp[j];
 		}
 		
 	}

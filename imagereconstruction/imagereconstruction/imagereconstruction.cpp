@@ -6,8 +6,10 @@
 #include "fileIO.h"
 #include "dataOp.h"
 #include "display.h"
+#include "tifOp.h"
 #include <string>
 #include <iostream>
+#include <tiffio.h>
 
 using namespace std;
 #define MAX_LOADSTRING 100
@@ -136,6 +138,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	PAINTSTRUCT ps;
 	HDC hdc;
 	HANDLE angleFile;
+	//tifImage projectionTif;
 	wstring projString;
 	vector<vector<char> > projList;
 	HWND listbox = NULL;
@@ -155,7 +158,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			break;
 		case SELECT_ANGLEDATA:
 			// select an angle file
-			angleFile = findAngleFile();
+			angleFile = findFile('a');
 			if (angleFile != INVALID_HANDLE_VALUE)
 			{
 				angles = angleSet::angleSet(angleFile);
@@ -187,14 +190,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				projString = projString + L"\n";
 			}
 			
-			listbox = CreateWindowEx(NULL, L"Static", projString.c_str(),
+			listbox = CreateWindowEx(NULL, L"ListBox", projString.c_str(),
 				WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOVSCROLL,
 				200, 50, 200, 150, hWnd, (HMENU) 202,
 				NULL, NULL);
 			//SetWindowText(listbox,L"abc");
 			break;
 		case 204:
-			cout << endl << tiffop();
+			//projectionTif = tifImage(findTifFile('r'));
+			findTifFile('r');
+			//cout << endl << projectionTif.getProjectionNum();
 			break;
 		default:
 			return DefWindowProc(hWnd, message, wParam, lParam);

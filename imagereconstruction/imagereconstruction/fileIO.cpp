@@ -2,6 +2,7 @@
 #include "fileIO.h"
 #include <shobjidl.h>     // for IFileDialogEvents and IFileDialogControlEvents
 #include <tiffio.h>
+#include <string>
 
 HANDLE findFile(char type)
 {
@@ -90,15 +91,16 @@ TIFF* findTifFile(char type)
 				if (SUCCEEDED(hr))
 				{
 					PWSTR pszFilePath;
-					hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
 
+					hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
 					// Display the file name to the user.
 					if (SUCCEEDED(hr))
 					{
 						MessageBox(NULL, pszFilePath, L"File Path", MB_OK);
-						//hFile = CreateFile(pszFilePath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-						char * szBuffer = new char[sizeof(pszFilePath)];
-						WideCharToMultiByte(CP_ACP,0,pszFilePath,-1,szBuffer,sizeof(szBuffer),NULL,NULL);
+						std::wstring filePath(pszFilePath);
+						int size = filePath.size();
+						char * szBuffer = new char[size];
+						WideCharToMultiByte(CP_ACP,0,pszFilePath,-1,szBuffer,size,NULL,NULL);
 						tif = TIFFOpen(szBuffer, &type);
 						CoTaskMemFree(pszFilePath);
 						delete szBuffer;

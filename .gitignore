@@ -7,7 +7,7 @@ imagereconstruction/imagereconstruction/[Tt]humbs.db
 [Tt]humbs.db
 *.DS_Store
 #Visual Studio files
-*.[Oo]bj
+**/*.[Oo]bj
 *.user
 *.aps
 *.pch
@@ -36,4 +36,4 @@ imagereconstruction/[Rr]elease*/
 Ankh.NoLoad
 imagereconstruction/packages/*
 !imagereconstruction/packages/repositories.config
-*.dll
+**/*.dll

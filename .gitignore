@@ -36,3 +36,5 @@ imagereconstruction/[Rr]elease*/
 Ankh.NoLoad
 imagereconstruction/packages/*
 !imagereconstruction/packages/repositories.config
+lib-src/tiff-4.0.3/tools/*.exe
+lib-src/tiff-4.0.3/tools/*.obj

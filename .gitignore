@@ -36,3 +36,4 @@ imagereconstruction/[Rr]elease*/
 Ankh.NoLoad
 imagereconstruction/packages/*
 !imagereconstruction/packages/repositories.config
+*.dll

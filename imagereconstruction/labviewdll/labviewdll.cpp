@@ -50,10 +50,10 @@ _declspec (dllexport) unsigned int numIntegers(char *inputString) {
 
 _declspec (dllexport) void tiffVersion(char x[]) {
 	const char* p = TIFFGetVersion();
-	memcpy(x, p, strlen(p));
+	memcpy(x, p, min(strlen(p),231)); // LabVIEW string size limit (unless pre-allocated)
 }
 
-_declspec (dllexport) TIFF* openTiffImage(char pathName[]) {
+_declspec (dllexport) TIFF* openTiffImage(const char * pathName) {
 	TIFF* tif = TIFFOpen(pathName, "r");
 	return tif;
 }
@@ -71,7 +71,9 @@ _declspec (dllexport) int countTiffPages(TIFF* tif) {
 	}
 }
 
-_declspec (dllexport) void getTiffTags(TIFF* tif, int compression, char hostComputer[]) {
-  TIFFGetField(tif, 259, &compression);
+_declspec (dllexport) void getTiffTags(TIFF* tif, int * compression, char * hostComputer, int * imageWidth, int * imageLength) {
+  TIFFGetField(tif, 259, compression);
   TIFFGetField(tif, 316, hostComputer);
+  TIFFGetField(tif, 256, imageWidth);
+  TIFFGetField(tif, 257, imageLength);
 }

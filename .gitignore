@@ -44,3 +44,5 @@ lib-src/tiff-4.0.3/tools/*.obj
 # Labview
 *.aliases
 *.lvlps
+# Lib dependency source
+lib-src/*

@@ -41,3 +41,6 @@ imagereconstruction/packages/*
 **/*.dll
 lib-src/tiff-4.0.3/tools/*.exe
 lib-src/tiff-4.0.3/tools/*.obj
+# Labview
+*.aliases
+*.lvlps

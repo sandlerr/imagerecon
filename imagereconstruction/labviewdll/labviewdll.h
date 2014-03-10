@@ -1,3 +1,5 @@
+#include <cstdint>
+
 BOOL WINAPI DllMain(HANDLE hinstDLL, DWORD, LPVOID);
 typedef struct tiff TIFF;
 extern "C"
@@ -8,5 +10,7 @@ extern "C"
   _declspec (dllexport) void  __cdecl tiffVersion(char[]);
   _declspec (dllexport) TIFF*  __cdecl openTiffImage(const char *);
   _declspec (dllexport) int  __cdecl countTiffPages(TIFF*);
-  _declspec (dllexport) void  __cdecl getTiffTags(TIFF*, int*, char*, int*, int*);
+  _declspec (dllexport) void  __cdecl getTiffTags(TIFF*, int*, char*, int*, int*, char*, int*);
+  _declspec (dllexport) int __cdecl readImage(TIFF* tif, const int directory, uint8_t* redvals);
 }
+void errorHandler(const char *module, const char *fmt, va_list ap);

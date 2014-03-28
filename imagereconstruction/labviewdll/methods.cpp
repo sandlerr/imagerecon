@@ -37,17 +37,35 @@ _declspec (dllexport) void sliceBP(const int32_t w, const double angle, uint8_t*
     {
       double tan_angle = s_angle / c_angle;
       double sec_angle = 1 / c_angle;
-      double offset = c_angle + s_angle*tan_angle;
+      double x_f = tan_angle * (centre_y-1) + (j - centre_x)*(c_angle + s_angle*tan_angle) + centre_x;
       for (int y = 0; y < w; y++)
       {
-        float x_f = tan_angle*(centre_y - y) + centre_x + (j - centre_x)*offset;
+        x_f -= tan_angle;
 
-        int pixel_above = (int) floor(0.5 + x_f);
-        int pixel_below = pixel_above - 1;
+        int pixel_below = (int) floor(x_f);
+        int pixel_above = pixel_below + 1;
         int current_pixel;
-        if (pixel_above <= 0 || pixel_below >= w-1)
+        if (pixel_above <= 0)
         {
-          continue;
+          if (tan_angle > 0)
+          {
+            break;
+          }
+          else
+          {
+            continue;
+          }
+        }
+        else if (pixel_below >= w - 1)
+        {
+          if (tan_angle < 0)
+          {
+            break;
+          }
+          else
+          {
+            continue;
+          }
         }
         else if (pixel_above - x_f <= 0.5)
         {
@@ -69,18 +87,36 @@ _declspec (dllexport) void sliceBP(const int32_t w, const double angle, uint8_t*
     {
       double cot_angle = c_angle / s_angle;
       double csc_angle = 1 / s_angle;
-      double offset = c_angle * cot_angle + s_angle;
+      double y_f = cot_angle * (centre_x-1) + (j - centre_x) * (c_angle * cot_angle + s_angle) + centre_y;
 
       for (int x = 0; x < w; x++)
       {
-        float y_f = cot_angle*(centre_x - x) + (j - centre_x) * offset + centre_y;
+        y_f -= cot_angle;
 
-        int pixel_above = (int) floor(0.5 + y_f);
-        int pixel_below = pixel_above - 1;
+        int pixel_below = (int) floor(y_f);
+        int pixel_above = pixel_below + 1;
         int current_pixel;
-        if (pixel_above <= 0 || pixel_below >= w-1)
+        if (pixel_above <= 0)
         {
-          continue;
+          if (cot_angle > 0)
+          {
+            break;
+          }
+          else
+          {
+            continue;
+          }
+        }
+        else if (pixel_below >= w - 1)
+        {
+          if (cot_angle < 0)
+          {
+            break;
+          }
+          else
+          {
+            continue;
+          }
         }
         else if (pixel_above - y_f <= 0.5)
         {
@@ -119,6 +155,8 @@ _declspec (dllexport) void sliceFP(const char* object, float* projection, int32_
 {
   double c_angle = cos(angle);
   double s_angle = sin(angle);
+  float centre_x = (float) centre[0];
+  float centre_y = (float) centre[1];
 
   float* objectBuffer = (float*) malloc(sizeof(float) *w*w); // make a buffer to cast the slice to float
 
@@ -138,17 +176,36 @@ _declspec (dllexport) void sliceFP(const char* object, float* projection, int32_
     {
       double tan_angle = s_angle / c_angle;
       double sec_angle = 1 / c_angle;
-      double offset = c_angle + s_angle*tan_angle;
+
+      double x_f = tan_angle * (centre_y - 1) + (j - centre_x)*(c_angle + s_angle*tan_angle) + centre_x;
       for (int y = 0; y < w; y++)
       {
-        float x_f = tan_angle*(w / 2 - y) + w / 2 + (j - w / 2)*offset;
+        x_f -= tan_angle;
 
-        int pixel_above = (int) floor(0.5 + x_f);
-        int pixel_below = pixel_above - 1;
+        int pixel_below = (int) floor(x_f);
+        int pixel_above = pixel_below + 1;
         int current_pixel;
-        if (pixel_above <= 0 || pixel_below >= w - 1)
+        if (pixel_above <= 0)
         {
-          continue;
+          if (tan_angle > 0)
+          {
+            break;
+          }
+          else
+          {
+            continue;
+          }
+        }
+        else if (pixel_below >= w - 1)
+        {
+          if (tan_angle < 0)
+          {
+            break;
+          }
+          else
+          {
+            continue;
+          }
         }
         else if (pixel_above - x_f <= 0.5)
         {
@@ -170,18 +227,36 @@ _declspec (dllexport) void sliceFP(const char* object, float* projection, int32_
     {
       double cot_angle = c_angle / s_angle;
       double csc_angle = 1 / s_angle;
-      double offset = c_angle * cot_angle + s_angle;
+      double y_f = cot_angle * (centre_x - 1) + (j - centre_x) * (c_angle * cot_angle + s_angle) + centre_y;
 
       for (int x = 0; x < w; x++)
       {
-        float y_f = -cot_angle*(x - w / 2) + (j - w / 2) * offset + w / 2;
+        y_f -= cot_angle;
 
-        int pixel_above = (int) floor(0.5 + y_f);
-        int pixel_below = pixel_above - 1;
+        int pixel_below = (int) floor(y_f);
+        int pixel_above = pixel_below + 1;
         int current_pixel;
-        if (pixel_above <= 0 || pixel_below >= w - 1)
+        if (pixel_above <= 0)
         {
-          continue;
+          if (cot_angle > 0)
+          {
+            break;
+          }
+          else
+          {
+            continue;
+          }
+        }
+        else if (pixel_below >= w - 1)
+        {
+          if (cot_angle < 0)
+          {
+            break;
+          }
+          else
+          {
+            continue;
+          }
         }
         else if (pixel_above - y_f <= 0.5)
         {

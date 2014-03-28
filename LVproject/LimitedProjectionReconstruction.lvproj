@@ -11,6 +11,8 @@
 		<Property Name="server.vi.propertiesEnabled" Type="Bool">true</Property>
 		<Property Name="specify.custom.address" Type="Bool">false</Property>
 		<Item Name="Sub VIs" Type="Folder">
+			<Item Name="backproject-worker.vi" Type="VI" URL="../backproject-worker.vi"/>
+			<Item Name="backproject.vi" Type="VI" URL="../backproject.vi"/>
 			<Item Name="CallDLL.vi" Type="VI" URL="../CallDLL.vi"/>
 			<Item Name="GetAngles.vi" Type="VI" URL="../GetAngles.vi"/>
 			<Item Name="openTiffImage.vi" Type="VI" URL="../openTiffImage.vi"/>
@@ -19,6 +21,7 @@
 			<Item Name="tiffTags.vi" Type="VI" URL="../tiffTags.vi"/>
 			<Item Name="tiffVersion.vi" Type="VI" URL="../tiffVersion.vi"/>
 		</Item>
+		<Item Name="bp_work_unit.ctl" Type="VI" URL="../bp_work_unit.ctl"/>
 		<Item Name="Main.vi" Type="VI" URL="../Main.vi"/>
 		<Item Name="tags_cluster.ctl" Type="VI" URL="../tags_cluster.ctl"/>
 		<Item Name="Dependencies" Type="Dependencies">

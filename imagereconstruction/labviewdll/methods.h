@@ -1,5 +1,7 @@
 #include "labviewdll.h"
 
 extern "C" {
-  _declspec (dllexport) void sliceFBP(TIFF* tif, const uint32_t slice, const int32_t w, const int32_t l, const int32_t total_quantity, int32_t samples_per_pixel, uint32_t used_quantity, const double* angles, const char* resultPath);
+  _declspec (dllexport) void sliceBP(const int32_t w, const double angle, uint8_t* line, float* results, int32_t* normalisation, const int* centre);
+  _declspec (dllexport) void normaliseArray(const int length, const int* normalisation, uint8_t* normalisedArray);
+  _declspec (dllexport) void sliceFP(const char* object, float* projection, int32_t* normalisation, const double angle, const int w, const int* centre);
 }

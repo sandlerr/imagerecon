@@ -33,7 +33,16 @@ _declspec (dllexport) int countTiffPages(TIFF* tif) {
 	}
 }
 
-_declspec (dllexport) uint32_t getTiffTags(int * compression, char * hostComputer, int32_t * imageWidth, int32_t * imageLength, char * software, int* bitness, int* samples_per_pixel, TIFF* tif) {
+_declspec (dllexport) uint32_t getTiffTags( int * compression, 
+                                            char * hostComputer, 
+                                            int32_t * imageWidth, 
+                                            int32_t * imageLength, 
+                                            char * software, 
+                                            int* bitness, 
+                                            int* samples_per_pixel, 
+                                            int* scanlineSize,
+                                            int* stripSize,
+                                            TIFF* tif) {
   TIFFGetField(tif, TIFFTAG_COMPRESSION, compression);
   TIFFGetField(tif, TIFFTAG_HOSTCOMPUTER, hostComputer);
   TIFFGetField(tif, TIFFTAG_SOFTWARE, software);
@@ -42,6 +51,8 @@ _declspec (dllexport) uint32_t getTiffTags(int * compression, char * hostCompute
   TIFFGetField(tif, TIFFTAG_BITSPERSAMPLE, bitness);
   TIFFGetField(tif, TIFFTAG_SAMPLESPERPIXEL, samples_per_pixel);
   uint32_t tifPages = countTiffPages(tif);
+  *scanlineSize = TIFFScanlineSize(tif);
+  *stripSize = TIFFStripSize(tif);
   return tifPages;
 }
 
@@ -61,7 +72,6 @@ _declspec (dllexport) int readImage(TIFF* tif,              // TIFF handle - IN
   uint32_t* raster = (uint32_t*) _TIFFmalloc(npixels * sizeof (uint32_t));
   if (raster != NULL) {
     err = TIFFReadRGBAImage(tif, w, h, raster, 1);
-    // redvals = (uint8_t*) malloc(npixels);
     if (err != 1) {
       return err;
     }
@@ -75,6 +85,64 @@ _declspec (dllexport) int readImage(TIFF* tif,              // TIFF handle - IN
   return err;
 }
 
+_declspec (dllexport) int setTiffDirectory(TIFF* tif, const int directory)
+{
+  return TIFFSetDirectory(tif, directory);
+}
+
+_declspec (dllexport) int readStrip(TIFF* tif,              // TIFF handle - IN 
+                                    const int slice,      // required slice - IN
+                                    uint8_t* strip,      // OUT, caller allocates memory
+                                    const int linesPerStrip,    // strip size / scanline size - IN
+                                    const int stripSize)    // strip size - IN        
+{
+  int err = 0;
+  int stripOfInterest = slice / linesPerStrip; // keep integer division here
+  err = TIFFReadEncodedStrip(tif, stripOfInterest, strip, stripSize);
+  return err;
+}
+
+TIFF* makeTiffImage(const char * pathName)
+{
+  TIFF* resultTif = TIFFOpen(pathName, "w");
+
+  return resultTif;
+}
+
+TIFF* writeTiff(TIFF* resultTif, const int w, const int l, const int scanlineSize, const int page, const int npages, uint8_t* data)
+{
+  TIFFSetField(resultTif, TIFFTAG_IMAGEWIDTH, w);
+  TIFFSetField(resultTif, TIFFTAG_IMAGELENGTH, l);
+  TIFFSetField(resultTif, TIFFTAG_BITSPERSAMPLE, 8);
+  TIFFSetField(resultTif, TIFFTAG_SAMPLESPERPIXEL, 1);
+  TIFFSetField(resultTif, TIFFTAG_ROWSPERSTRIP, 1);
+  TIFFSetField(resultTif, TIFFTAG_RESOLUTIONUNIT, 1);
+  TIFFSetField(resultTif, TIFFTAG_XRESOLUTION, 1);
+  TIFFSetField(resultTif, TIFFTAG_YRESOLUTION, 1);
+  TIFFSetField(resultTif, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
+  TIFFSetField(resultTif, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT);
+
+  TIFFSetField(resultTif, TIFFTAG_COMPRESSION, COMPRESSION_DEFLATE);
+  TIFFSetField(resultTif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB);
+  /* We are writing single page of the multipage file */
+  TIFFSetField(resultTif, TIFFTAG_SUBFILETYPE, FILETYPE_PAGE);
+  /* Set the page number */
+  TIFFSetField(resultTif, TIFFTAG_PAGENUMBER, page, npages);
+  // write out the result to a tif
+  for (int i = 0; i < l; i++)
+  {
+    TIFFWriteScanline(resultTif, data, i, scanlineSize);
+    data += w;
+  }
+  TIFFWriteDirectory(resultTif);
+  return resultTif;
+}
+
+void closeTiff(TIFF* tiff)
+{
+  TIFFClose(tiff);
+}
+
 _declspec (dllexport) void sinograph(TIFF* tif, const uint32_t slice, const int32_t w, const int32_t l, const int32_t total_quantity, int32_t samples_per_pixel, uint32_t used_quantity, const char* resultPath)
 {
   if (slice >= l)
@@ -85,17 +153,26 @@ _declspec (dllexport) void sinograph(TIFF* tif, const uint32_t slice, const int3
   strcpy_s(pathName, resultPath);
   strcat_s(pathName, "\\sinograph.tif");
 
-  TIFF* resultTif     = makeTiffImage(pathName, w, used_quantity, samples_per_pixel);
+  TIFF* resultTif = makeTiffImage(pathName);
+  TIFFSetField(resultTif, TIFFTAG_IMAGEWIDTH, w);
+  TIFFSetField(resultTif, TIFFTAG_IMAGELENGTH, l);
+  TIFFSetField(resultTif, TIFFTAG_BITSPERSAMPLE, 8);
+  TIFFSetField(resultTif, TIFFTAG_SAMPLESPERPIXEL, samples_per_pixel);
+  TIFFSetField(resultTif, TIFFTAG_ROWSPERSTRIP, 1);
+  TIFFSetField(resultTif, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
+  TIFFSetField(resultTif, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT);
 
-  int scanlineSize    = TIFFScanlineSize(tif);
-  int stripSize       = TIFFStripSize(tif);
-  int linesPerStrip   = stripSize / scanlineSize;
+  TIFFSetField(resultTif, TIFFTAG_COMPRESSION, COMPRESSION_DEFLATE);
+  TIFFSetField(resultTif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB);
+  int scanlineSize = TIFFScanlineSize(tif);
+  int stripSize = TIFFStripSize(tif);
+  int linesPerStrip = stripSize / scanlineSize;
   int stripOfInterest = slice / linesPerStrip; // keep integer division here
-  int offsetPixels    = slice % linesPerStrip * w;
+  int offsetPixels = slice % linesPerStrip * w;
 
-  uint8_t* buffer     = (uint8_t*) _TIFFmalloc(stripSize);
+  uint8_t* buffer = (uint8_t*) _TIFFmalloc(stripSize);
 
-  int32_t selector    = (total_quantity + used_quantity - 1) / used_quantity;
+  int32_t selector = (total_quantity + used_quantity - 1) / used_quantity;
   used_quantity = 0;
 
   for (int32_t i = 0; i < total_quantity; i++)
@@ -113,19 +190,3 @@ _declspec (dllexport) void sinograph(TIFF* tif, const uint32_t slice, const int3
   _TIFFfree(buffer);
   TIFFClose(resultTif);
 }
-
-TIFF* makeTiffImage(const char * pathName, int32_t w, int32_t l, int32_t samples_per_pixel)
-{
-  TIFF* resultTif = TIFFOpen(pathName, "w");
-  TIFFSetField(resultTif, TIFFTAG_IMAGEWIDTH, w);
-  TIFFSetField(resultTif, TIFFTAG_IMAGELENGTH, l);
-  TIFFSetField(resultTif, TIFFTAG_BITSPERSAMPLE, 8);
-  TIFFSetField(resultTif, TIFFTAG_SAMPLESPERPIXEL, samples_per_pixel);
-  TIFFSetField(resultTif, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
-  TIFFSetField(resultTif, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT);
-
-  TIFFSetField(resultTif, TIFFTAG_COMPRESSION, COMPRESSION_DEFLATE);
-  TIFFSetField(resultTif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB);
-  return resultTif;
-}
-

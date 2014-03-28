@@ -6,7 +6,7 @@
 
 #define PI 3.14159265
 
-
+// ANGLE MUST BE IN RADIANS! CONVERT IT YOURSELF
 _declspec (dllexport) void sliceBP(const int32_t w, const double angle, uint8_t* line, float* results, int32_t* normalisation, const int* centre)
 {
 
@@ -42,7 +42,7 @@ _declspec (dllexport) void sliceBP(const int32_t w, const double angle, uint8_t*
       {
         float x_f = tan_angle*(centre_y - y) + centre_x + (j - centre_x)*offset;
 
-        int pixel_above = floor(0.5 + x_f);
+        int pixel_above = (int) floor(0.5 + x_f);
         int pixel_below = pixel_above - 1;
         int current_pixel;
         if (pixel_above <= 0 || pixel_below >= w-1)
@@ -75,7 +75,7 @@ _declspec (dllexport) void sliceBP(const int32_t w, const double angle, uint8_t*
       {
         float y_f = cot_angle*(centre_x - x) + (j - centre_x) * offset + centre_y;
 
-        int pixel_above = floor(0.5 + y_f);
+        int pixel_above = (int) floor(0.5 + y_f);
         int pixel_below = pixel_above - 1;
         int current_pixel;
         if (pixel_above <= 0 || pixel_below >= w-1)
@@ -143,7 +143,7 @@ _declspec (dllexport) void sliceFP(const char* object, float* projection, int32_
       {
         float x_f = tan_angle*(w / 2 - y) + w / 2 + (j - w / 2)*offset;
 
-        int pixel_above = floor(0.5 + x_f);
+        int pixel_above = (int) floor(0.5 + x_f);
         int pixel_below = pixel_above - 1;
         int current_pixel;
         if (pixel_above <= 0 || pixel_below >= w - 1)
@@ -176,7 +176,7 @@ _declspec (dllexport) void sliceFP(const char* object, float* projection, int32_
       {
         float y_f = -cot_angle*(x - w / 2) + (j - w / 2) * offset + w / 2;
 
-        int pixel_above = floor(0.5 + y_f);
+        int pixel_above = (int) floor(0.5 + y_f);
         int pixel_below = pixel_above - 1;
         int current_pixel;
         if (pixel_above <= 0 || pixel_below >= w - 1)

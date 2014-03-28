@@ -40,8 +40,8 @@ _declspec (dllexport) uint32_t getTiffTags( int * compression,
                                             char * software, 
                                             int* bitness, 
                                             int* samples_per_pixel, 
-                                            int* scanlineSize,
-                                            int* stripSize,
+                                            int32_t* scanlineSize,
+                                            int32_t* stripSize,
                                             TIFF* tif) {
   TIFFGetField(tif, TIFFTAG_COMPRESSION, compression);
   TIFFGetField(tif, TIFFTAG_HOSTCOMPUTER, hostComputer);
@@ -90,13 +90,13 @@ _declspec (dllexport) int setTiffDirectory(TIFF* tif, const int directory)
   return TIFFSetDirectory(tif, directory);
 }
 
-_declspec (dllexport) int readStrip(TIFF* tif,              // TIFF handle - IN 
+_declspec (dllexport) int32_t readStrip(TIFF* tif,              // TIFF handle - IN 
                                     const int slice,      // required slice - IN
                                     uint8_t* strip,      // OUT, caller allocates memory
                                     const int linesPerStrip,    // strip size / scanline size - IN
                                     const int stripSize)    // strip size - IN        
 {
-  int err = 0;
+  int32_t err = 0;
   int stripOfInterest = slice / linesPerStrip; // keep integer division here
   err = TIFFReadEncodedStrip(tif, stripOfInterest, strip, stripSize);
   return err;
@@ -145,7 +145,7 @@ void closeTiff(TIFF* tiff)
 
 _declspec (dllexport) void sinograph(TIFF* tif, const uint32_t slice, const int32_t w, const int32_t l, const int32_t total_quantity, int32_t samples_per_pixel, uint32_t used_quantity, const char* resultPath)
 {
-  if (slice >= l)
+  if (slice >= (uint32_t) l)
   {
     return;
   }
@@ -155,7 +155,7 @@ _declspec (dllexport) void sinograph(TIFF* tif, const uint32_t slice, const int3
 
   TIFF* resultTif = makeTiffImage(pathName);
   TIFFSetField(resultTif, TIFFTAG_IMAGEWIDTH, w);
-  TIFFSetField(resultTif, TIFFTAG_IMAGELENGTH, l);
+  TIFFSetField(resultTif, TIFFTAG_IMAGELENGTH, used_quantity);
   TIFFSetField(resultTif, TIFFTAG_BITSPERSAMPLE, 8);
   TIFFSetField(resultTif, TIFFTAG_SAMPLESPERPIXEL, samples_per_pixel);
   TIFFSetField(resultTif, TIFFTAG_ROWSPERSTRIP, 1);
@@ -164,8 +164,8 @@ _declspec (dllexport) void sinograph(TIFF* tif, const uint32_t slice, const int3
 
   TIFFSetField(resultTif, TIFFTAG_COMPRESSION, COMPRESSION_DEFLATE);
   TIFFSetField(resultTif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB);
-  int scanlineSize = TIFFScanlineSize(tif);
-  int stripSize = TIFFStripSize(tif);
+  int32_t scanlineSize = TIFFScanlineSize(tif);
+  int32_t stripSize = TIFFStripSize(tif);
   int linesPerStrip = stripSize / scanlineSize;
   int stripOfInterest = slice / linesPerStrip; // keep integer division here
   int offsetPixels = slice % linesPerStrip * w;

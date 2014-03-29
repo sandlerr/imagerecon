@@ -14,6 +14,7 @@
 			<Item Name="backproject-worker.vi" Type="VI" URL="../backproject-worker.vi"/>
 			<Item Name="backproject.vi" Type="VI" URL="../backproject.vi"/>
 			<Item Name="CallDLL.vi" Type="VI" URL="../CallDLL.vi"/>
+			<Item Name="forward proj comparison.vi" Type="VI" URL="../forward proj comparison.vi"/>
 			<Item Name="GetAngles.vi" Type="VI" URL="../GetAngles.vi"/>
 			<Item Name="openTiffImage.vi" Type="VI" URL="../openTiffImage.vi"/>
 			<Item Name="readImage.vi" Type="VI" URL="../readImage.vi"/>

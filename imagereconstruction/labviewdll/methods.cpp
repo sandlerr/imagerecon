@@ -151,7 +151,7 @@ _declspec (dllexport) void  normaliseArray(const int length, const int* normalis
   }
 }
 
-_declspec (dllexport) void sliceFP(const char* object, float* projection, int32_t* normalisation, const double angle, const int w, const int* centre)
+_declspec (dllexport) void sliceFP(const uint8_t* object, float* projection, int32_t* normalisation, const double angle, const int w, const int* centre)
 {
   double c_angle = cos(angle);
   double s_angle = sin(angle);
@@ -160,7 +160,7 @@ _declspec (dllexport) void sliceFP(const char* object, float* projection, int32_
 
   float* objectBuffer = (float*) malloc(sizeof(float) *w*w); // make a buffer to cast the slice to float
 
-  for (int j = 0; j < w; j++)
+  for (int j = 0; j < w*w; j++)
   {
     // process backprojectBuffer[j] here, for example FFT / filter / IFFT
     //status = DftiComputeForward(dftiDescriptor, reconSlice);
@@ -219,8 +219,8 @@ _declspec (dllexport) void sliceFP(const char* object, float* projection, int32_
         {
           continue;
         }
-        normalisation[current_pixel] += 1; // change to float and use distance??
-        projection[current_pixel] += objectBuffer[j] * 1;
+        normalisation[j] += 1; // change to float and use distance??
+        projection[j] += objectBuffer[current_pixel] * 1;
       }
     }
     else // angle between PI/4 and 3*PI/4
@@ -270,8 +270,8 @@ _declspec (dllexport) void sliceFP(const char* object, float* projection, int32_
         {
           continue;
         }
-        normalisation[current_pixel] += 1; // change to float and use distance??
-        projection[current_pixel] += objectBuffer[j] * 1;
+        normalisation[j] += 1; // change to float and use distance??
+        projection[j] += objectBuffer[current_pixel] * 1;
       }
     }
   }

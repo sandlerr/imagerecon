@@ -16,6 +16,7 @@
 			<Item Name="CallDLL.vi" Type="VI" URL="../CallDLL.vi"/>
 			<Item Name="forward proj comparison.vi" Type="VI" URL="../forward proj comparison.vi"/>
 			<Item Name="GetAngles.vi" Type="VI" URL="../GetAngles.vi"/>
+			<Item Name="laplacian.vi" Type="VI" URL="../laplacian.vi"/>
 			<Item Name="openTiffImage.vi" Type="VI" URL="../openTiffImage.vi"/>
 			<Item Name="readImage.vi" Type="VI" URL="../readImage.vi"/>
 			<Item Name="ReadTextUntilError.vi" Type="VI" URL="../ReadTextUntilError.vi"/>
@@ -23,7 +24,6 @@
 			<Item Name="tiffVersion.vi" Type="VI" URL="../tiffVersion.vi"/>
 		</Item>
 		<Item Name="bp_work_unit.ctl" Type="VI" URL="../bp_work_unit.ctl"/>
-		<Item Name="laplacian.vi" Type="VI" URL="../laplacian.vi"/>
 		<Item Name="Main.vi" Type="VI" URL="../Main.vi"/>
 		<Item Name="tags_cluster.ctl" Type="VI" URL="../tags_cluster.ctl"/>
 		<Item Name="Dependencies" Type="Dependencies">

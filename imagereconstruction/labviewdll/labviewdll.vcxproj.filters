@@ -27,7 +27,10 @@
     <ClInclude Include="labviewdll.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="methods.h">
+    <ClInclude Include="projection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="art.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -41,7 +44,10 @@
     <ClCompile Include="dllmain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="methods.cpp">
+    <ClCompile Include="projection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="art.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

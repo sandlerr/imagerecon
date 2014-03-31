@@ -78,68 +78,68 @@ _declspec (dllexport) void getPixelsForProjection(const int w, const double angl
       }
     }
   }
-    else // angle between PI/4 and 3*PI/4
+  else // angle between PI/4 and 3*PI/4
+  {
+    double cot_angle = c_angle / s_angle;
+    double csc_angle = 1 / s_angle;
+    double increment = (c_angle * cot_angle + s_angle);
+    double y_f = cot_angle * (centre_x - 1) + (-1 - centre_x) * increment + centre_y;
+    double y_r;
+    for (int j = 0; j < w; j++)
     {
-      double cot_angle = c_angle / s_angle;
-      double csc_angle = 1 / s_angle;
-      double increment = (c_angle * cot_angle + s_angle);
-      double y_f = cot_angle * (centre_x - 1) + (-1 - centre_x) * increment + centre_y;
-      double y_r;
-      for (int j = 0; j < w; j++)
+      count[j] = 0;
+      y_f += increment;
+      y_r = y_f;
+      for (int x = 0; x < w; x++)
       {
-        count[j] = 0;
-        y_f += increment;
-        y_r = y_f;
-        for (int x = 0; x < w; x++)
-        {
-          y_r -= cot_angle;
+        y_r -= cot_angle;
 
-          int pixel_below = (int) floor(y_r);
-          int pixel_above = pixel_below + 1;
-          int current_pixel;
-          if (pixel_above <= 0)
+        int pixel_below = (int) floor(y_r);
+        int pixel_above = pixel_below + 1;
+        int current_pixel;
+        if (pixel_above <= 0)
+        {
+          if (cot_angle > 0)
           {
-            if (cot_angle > 0)
-            {
-              break;
-            }
-            else
-            {
-              continue;
-            }
-          }
-          else if (pixel_below >= w - 1)
-          {
-            if (cot_angle < 0)
-            {
-              break;
-            }
-            else
-            {
-              continue;
-            }
-          }
-          else if (pixel_above - y_r <= 0.5)
-          {
-            current_pixel = pixel_above*w + x;
-          }
-          else if (y_r - pixel_below < 0.5)
-          {
-            current_pixel = pixel_below*w + x;
+            break;
           }
           else
           {
             continue;
           }
-          *(thispix++) = current_pixel;
-          count[j] += 1;
-          if (current_pixel > w*w || count[j] > w)
-          {
-            int Z= 1;
-          }
-          *(thisnorm++) = 1;
         }
+        else if (pixel_below >= w - 1)
+        {
+          if (cot_angle < 0)
+          {
+            break;
+          }
+          else
+          {
+            continue;
+          }
+        }
+        else if (pixel_above - y_r <= 0.5)
+        {
+          current_pixel = pixel_above*w + x;
+        }
+        else if (y_r - pixel_below < 0.5)
+        {
+          current_pixel = pixel_below*w + x;
+        }
+        else
+        {
+          continue;
+        }
+        *(thispix++) = current_pixel;
+        count[j] += 1;
+        if (current_pixel > w*w || count[j] > w)
+        {
+          int Z= 1;
+        }
+        *(thisnorm++) = 1;
       }
+    }
   }
 }
 

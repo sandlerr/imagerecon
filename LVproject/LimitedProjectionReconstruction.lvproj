@@ -25,6 +25,7 @@
 		</Item>
 		<Item Name="bp_work_unit.ctl" Type="VI" URL="../bp_work_unit.ctl"/>
 		<Item Name="Main.vi" Type="VI" URL="../Main.vi"/>
+		<Item Name="pixels_for_proj.ctl" Type="VI" URL="../pixels_for_proj.ctl"/>
 		<Item Name="tags_cluster.ctl" Type="VI" URL="../tags_cluster.ctl"/>
 		<Item Name="Dependencies" Type="Dependencies">
 			<Item Name="vi.lib" Type="Folder">

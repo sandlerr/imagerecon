@@ -2,14 +2,15 @@
 //
 
 #include "stdafx.h"
-#include "mkl_dfti.h"
+#include "mkl.h"
 #include <iostream>
 void fourier_analysis();
+void dot_product();
 
 int _tmain(int argc, _TCHAR* argv[])
 {
   printf("Hello world!\n");
-  fourier_analysis();
+  dot_product();
   std::cout <<"Goodbye world\n";
 	return 0;
 }
@@ -33,5 +34,24 @@ void fourier_analysis()
   /* result is given in CCS format*/
   for (float &i : y) {
     printf("FFT Value: %f\n", i);
+  }
+}
+
+void dot_product()
+{
+  float x[50];
+  float y[50];
+  //float* result = (float*) malloc(sizeof (float) * 50);
+  float result[50];
+  for (int i = 0; i < 50; i++)
+  {
+    y[i] = (float) rand();
+    x[i] = (float) rand();
+    printf("Product: %f\n", x[i] * y[i]);
+  }
+  vsMul(50, x, y, result);
+  for (int i = 49; i >= 0; --i)
+  {
+    printf("Dot prod: %f\n", x[i] * y[i]);
   }
 }

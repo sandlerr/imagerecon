@@ -153,6 +153,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="art.h" />
+    <ClInclude Include="atlas.h" />
     <ClInclude Include="labviewdll.h" />
     <ClInclude Include="projection.h" />
     <ClInclude Include="stdafx.h" />
@@ -160,6 +161,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="art.cpp" />
+    <ClCompile Include="atlas.cpp" />
     <ClCompile Include="dllmain.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</CompileAsManaged>

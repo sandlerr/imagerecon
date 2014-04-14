@@ -7,5 +7,6 @@ extern "C" {
   _declspec (dllexport) void normaliseArrayf(const int length, const int* normalisation, float* normalisedArray);
   _declspec (dllexport) void sliceFP(const uint8_t* object, float* projection, int32_t* normalisation, const int w, int32_t* rayNormalisation, int32_t* pixels, int32_t* count);
   _declspec (dllexport) void sliceFPf(const float* object, float* projection, int32_t* normalisation, const int w, int32_t* rayNormalisation, int32_t* pixels, int32_t* count);
+  _declspec (dllexport) void sliceFBPf(const int32_t w, const float* line, float* results, int32_t* normalisation, int32_t* rayNormalisation, int32_t* pixels, int32_t* count);
 }
 

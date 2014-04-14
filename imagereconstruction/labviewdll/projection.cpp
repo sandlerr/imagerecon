@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "projection.h"
+#include "mkl.h"
 #include <math.h>
 #include <malloc.h>
 #include <float.h>
@@ -16,18 +17,22 @@ _declspec (dllexport) void getPixelsForProjection(const int w, const double angl
   int32_t* thispix = pixels;
   int32_t* thisnorm = normalisation;
   // backproject
-  for (int j = 0; j < w; j++)
+  if (angle <= PI / 4 || angle >= 3 * PI / 4)
   {
-    if (angle <= PI / 4 || angle >= 3 * PI / 4)
+    double tan_angle = s_angle / c_angle;
+    double sec_angle = 1 / c_angle;
+    double offset = (c_angle + s_angle*tan_angle);
+    double x_f = tan_angle * (centre_y - 1) + (-1 - centre_x)*offset + centre_x;
+    double x_r;
+    for (int j = 0; j < w; j++)
     {
-      double tan_angle = s_angle / c_angle;
-      double sec_angle = 1 / c_angle;
-      double x_f = tan_angle * (centre_y - 1) + (j - centre_x)*(c_angle + s_angle*tan_angle) + centre_x;
+      x_f += offset;
+      x_r = x_f;
       for (int y = 0; y < w; y++)
       {
-        x_f -= tan_angle;
+        x_r -= tan_angle;
 
-        int pixel_below = (int) floor(x_f);
+        int pixel_below = (int) floor(x_r);
         int pixel_above = pixel_below + 1;
         int current_pixel;
         if (pixel_above <= 0)
@@ -52,11 +57,11 @@ _declspec (dllexport) void getPixelsForProjection(const int w, const double angl
             continue;
           }
         }
-        else if (pixel_above - x_f <= 0.5)
+        else if (pixel_above - x_r <= 0.5)
         {
           current_pixel = y*w + pixel_above;
         }
-        else if (x_f - pixel_below < 0.5)
+        else if (x_r - pixel_below < 0.5)
         {
           current_pixel = y*w + pixel_below;
         }
@@ -69,17 +74,23 @@ _declspec (dllexport) void getPixelsForProjection(const int w, const double angl
         *(thisnorm++) += 1;
       }
     }
-    else // angle between PI/4 and 3*PI/4
+  }
+  else // angle between PI/4 and 3*PI/4
+  {
+    double cot_angle = c_angle / s_angle;
+    double csc_angle = 1 / s_angle;
+    double offset = (c_angle * cot_angle + s_angle);
+    double y_f = cot_angle * (centre_x - 1) + (-1 - centre_x) * offset + centre_y;
+    double y_r;
+    for (int j = 0; j < w; j++)
     {
-      double cot_angle = c_angle / s_angle;
-      double csc_angle = 1 / s_angle;
-      double y_f = cot_angle * (centre_x - 1) + (j - centre_x) * (c_angle * cot_angle + s_angle) + centre_y;
-
+      y_f += offset;
+      y_r = y_f;
       for (int x = 0; x < w; x++)
       {
-        y_f -= cot_angle;
+        y_r -= cot_angle;
 
-        int pixel_below = (int) floor(y_f);
+        int pixel_below = (int) floor(y_r);
         int pixel_above = pixel_below + 1;
         int current_pixel;
         if (pixel_above <= 0)
@@ -104,11 +115,11 @@ _declspec (dllexport) void getPixelsForProjection(const int w, const double angl
             continue;
           }
         }
-        else if (pixel_above - y_f <= 0.5)
+        else if (pixel_above - y_r <= 0.5)
         {
           current_pixel = pixel_above*w + x;
         }
-        else if (y_f - pixel_below < 0.5)
+        else if (y_r - pixel_below < 0.5)
         {
           current_pixel = pixel_below*w + x;
         }
@@ -203,6 +214,60 @@ _declspec (dllexport) void sliceBPf(const int32_t w, const float* line, float* r
       results[current_pixel] += line[i] * current_norm;
     }
   }
+}
+
+// ANGLE MUST BE IN RADIANS! CONVERT IT YOURSELF
+_declspec (dllexport) void sliceFBPf(const int32_t w, const float* line, float* results, int32_t* normalisation, int32_t* rayNormalisation, int32_t* pixels, int32_t* count)
+{
+  DFTI_DESCRIPTOR_HANDLE fft_handle;
+  int status;
+  int current_pixel, current_norm;
+  int32_t* this_pixel = pixels;
+  int32_t* this_norm = rayNormalisation;
+
+  float* fourierLine = (float *) malloc(sizeof(float) * w);
+  memcpy(fourierLine, line, w*sizeof(float));
+  status = DftiCreateDescriptor(&fft_handle, DFTI_SINGLE, DFTI_REAL, 1, w);
+  if (status != 0)
+  {
+    free(fourierLine);
+    return;
+  }
+  status = DftiCommitDescriptor(fft_handle);
+  if (status != 0)
+  {
+    free(fourierLine);
+    return;
+  }
+  status = DftiComputeForward(fft_handle, fourierLine);
+  if (status != 0)
+  {
+    free(fourierLine);
+    return;
+  }
+  for (int i = 0; i < w; i++)
+  {
+    fourierLine[i] *= i * 2.f / w;
+  }
+  status = DftiComputeBackward(fft_handle, fourierLine);
+  if (status != 0)
+  {
+    free(fourierLine);
+    return;
+  }
+  DftiFreeDescriptor(&fft_handle);
+  // backproject
+  for (int i = 0; i < w; i++)
+  {
+    for (int j = 0; j < count[i]; j++)
+    {
+      current_pixel = *(this_pixel++);
+      current_norm = *(this_norm++);
+      normalisation[current_pixel] += current_norm; // change to float and use distance??
+      results[current_pixel] += fourierLine[i] * current_norm;
+    }
+  }
+  free(fourierLine);
 }
 
 

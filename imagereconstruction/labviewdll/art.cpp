@@ -48,21 +48,18 @@ _declspec (dllexport) void artIteration(float* object, const float* actualProjec
   }
   sliceFPf(object, forwardProjection, normalisation, w, rayNormalisation, pixels, count);
   normaliseArrayf(w, normalisation, forwardProjection);
-
-  float* invert = forwardProjection;
+  free(normalisation);
   for (int i = 0; i < w; i++)
   {
-    int fpclass = _fpclassf(*invert);
-    if (fpclass != _FPCLASS_NZ && fpclass != _FPCLASS_PZ)
+    if (forwardProjection[i] == 0)
     {
-      *invert = 1 / *(invert++);
-    }
-    else
-    {
-      *(invert++) = 255;
+      forwardProjection[i] = 0.0039215686274509803921568627451f;
     }
   }
-  vmsMul(w, actualProjection, forwardProjection, newProjection, VML_ERRMODE_IGNORE);
+  //vmsMul(w, actualProjection, forwardProjection, newProjection, VML_ERRMODE_IGNORE);
+  vmsLinearFrac(w, actualProjection, forwardProjection, 1, 0, 1, 0, newProjection, VML_ERRMODE_IGNORE);
+  free(forwardProjection);
+
 
   int current_pixel;
   int32_t* this_pixel = pixels;
@@ -82,4 +79,5 @@ _declspec (dllexport) void artIteration(float* object, const float* actualProjec
       }
     }
   }
+  free(newProjection);
 }

@@ -19,6 +19,9 @@ extern "C"
                                               TIFF* tif);
 
   _declspec (dllexport) int __cdecl readImage(TIFF* tif, const int directory, uint8_t* redvals);
+  _declspec (dllexport) int readGreyImage(TIFF* tif,              // TIFF handle - IN 
+    const int directory,   // page ordinal number - IN
+    uint8_t* buffer);      // OUT, caller allocates memory
   _declspec (dllexport) int setTiffDirectory(TIFF* tif, const int directory);
 
   _declspec (dllexport) int32_t readStrip(TIFF* tif,              // TIFF handle - IN 
@@ -30,6 +33,8 @@ extern "C"
   _declspec (dllexport) TIFF* writeTiff(TIFF* resultTif, const int w, const int l, const int scanlineSize, const int page, const int npages, uint8_t* data);
   _declspec (dllexport) TIFF* makeTiffImage(const char * pathName);
   _declspec (dllexport) void closeTiff(TIFF* tiff);
+
+  _declspec (dllexport) void fixPageNumbers(const char* pathName, const int npages);
 
   _declspec (dllexport) void sinograph(TIFF* tif, const uint32_t slice, const int32_t w, const int32_t l, const int32_t total_quantity, int32_t samples_per_pixel, uint32_t used_quantity, const char* resultPath);
 

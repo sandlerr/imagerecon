@@ -57,8 +57,8 @@ _declspec (dllexport) uint32_t getTiffTags( int * compression,
 }
 
 _declspec (dllexport) int readImage(TIFF* tif,              // TIFF handle - IN 
-                                     const int directory,   // page ordinal number - IN
-                                     uint8_t* redvals)      // OUT, caller allocates memory
+  const int directory,   // page ordinal number - IN
+  uint8_t* redvals)      // OUT, caller allocates memory
 {
   TIFFSetDirectory(tif, directory);
   int err = 0;
@@ -85,6 +85,32 @@ _declspec (dllexport) int readImage(TIFF* tif,              // TIFF handle - IN
   return err;
 }
 
+_declspec (dllexport) int readGreyImage(TIFF* tif,              // TIFF handle - IN 
+  const int directory,   // page ordinal number - IN
+  uint8_t* buffer)      // OUT, caller allocates memory
+{
+  TIFFSetDirectory(tif, directory);
+  int err = 0;
+  uint32_t w, h, s;
+  size_t npixels;
+
+  TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &w);
+  TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h);
+  s = TIFFScanlineSize(tif);
+  //TIFFGetField(tif, TIFFTAG_BITSPERSAMPLE, bits);
+  npixels = w * h;
+  int numToRead = npixels / s;
+  for (int r = 0; r < numToRead; r++)
+  {
+    err = TIFFReadScanline(tif, buffer+r*s, r);
+    if (err != 1)
+    {
+      return -1*r;
+    }
+  }
+  return err;
+}
+
 _declspec (dllexport) int setTiffDirectory(TIFF* tif, const int directory)
 {
   return TIFFSetDirectory(tif, directory);
@@ -104,7 +130,7 @@ _declspec (dllexport) int32_t readStrip(TIFF* tif,              // TIFF handle -
 
 TIFF* makeTiffImage(const char * pathName)
 {
-  TIFF* resultTif = TIFFOpen(pathName, "w");
+  TIFF* resultTif = TIFFOpen(pathName, "w8");
 
   return resultTif;
 }
@@ -123,7 +149,7 @@ TIFF* writeTiff(TIFF* resultTif, const int w, const int l, const int scanlineSiz
   TIFFSetField(resultTif, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT);
 
   TIFFSetField(resultTif, TIFFTAG_COMPRESSION, COMPRESSION_DEFLATE);
-  TIFFSetField(resultTif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB);
+  TIFFSetField(resultTif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_MINISBLACK);
   /* We are writing single page of the multipage file */
   TIFFSetField(resultTif, TIFFTAG_SUBFILETYPE, FILETYPE_PAGE);
   /* Set the page number */
@@ -142,6 +168,21 @@ void closeTiff(TIFF* tiff)
 {
   TIFFClose(tiff);
 }
+
+
+
+_declspec (dllexport) void fixPageNumbers(const char* pathName, const int npages)
+{
+  TIFF* tif = TIFFOpen(pathName, "a8");
+  TIFFSetDirectory(tif, 0);
+  for (int i = 0; i < npages; i++)
+  {
+    TIFFSetField(tif, TIFFTAG_PAGENUMBER, i, npages);
+    TIFFReadDirectory(tif);
+  }
+  TIFFClose(tif);
+}
+
 
 _declspec (dllexport) void sinograph(TIFF* tif, const uint32_t slice, const int32_t w, const int32_t l, const int32_t total_quantity, int32_t samples_per_pixel, uint32_t used_quantity, const char* resultPath)
 {
@@ -163,7 +204,7 @@ _declspec (dllexport) void sinograph(TIFF* tif, const uint32_t slice, const int3
   TIFFSetField(resultTif, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT);
 
   TIFFSetField(resultTif, TIFFTAG_COMPRESSION, COMPRESSION_DEFLATE);
-  TIFFSetField(resultTif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB);
+  TIFFSetField(resultTif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_MINISBLACK);
   int32_t scanlineSize = TIFFScanlineSize(tif);
   int32_t stripSize = TIFFStripSize(tif);
   int linesPerStrip = stripSize / scanlineSize;

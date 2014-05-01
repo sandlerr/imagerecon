@@ -38,17 +38,18 @@
 			<Item Name="utility" Type="Folder">
 				<Item Name="createOutputFile.vi" Type="VI" URL="../createOutputFile.vi"/>
 				<Item Name="increment-file-name.vi" Type="VI" URL="../increment-file-name.vi"/>
+				<Item Name="load-from-atlas.vi" Type="VI" URL="../load-from-atlas.vi"/>
 				<Item Name="queue-cleanup.vi" Type="VI" URL="../queue-cleanup.vi"/>
 				<Item Name="resume-from-progress.vi" Type="VI" URL="../resume-from-progress.vi"/>
 				<Item Name="scale to u8.vi" Type="VI" URL="../scale to u8.vi"/>
 			</Item>
 			<Item Name="art_pass.vi" Type="VI" URL="../art_pass.vi"/>
 			<Item Name="forward proj comparison.vi" Type="VI" URL="../forward proj comparison.vi"/>
+			<Item Name="image-viewer.vi" Type="VI" URL="../image-viewer.vi"/>
 			<Item Name="laplacian.vi" Type="VI" URL="../laplacian.vi"/>
 			<Item Name="readGreyImage.vi" Type="VI" URL="../readGreyImage.vi"/>
 			<Item Name="readImage.vi" Type="VI" URL="../readImage.vi"/>
 		</Item>
-		<Item Name="image-viewer.vi" Type="VI" URL="../image-viewer.vi"/>
 		<Item Name="Main.vi" Type="VI" URL="../Main.vi"/>
 		<Item Name="repair-tags.vi" Type="VI" URL="../repair-tags.vi"/>
 		<Item Name="Dependencies" Type="Dependencies">

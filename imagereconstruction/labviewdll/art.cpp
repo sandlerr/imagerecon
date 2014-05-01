@@ -42,10 +42,6 @@ _declspec (dllexport) void artIteration(float* object, const float* actualProjec
     newProjection[i] = 0;
   }
 
-  for (int i = 0; i < w; i++)
-  {
-    normalisation[i] = 0;
-  }
   sliceFPf(object, forwardProjection, normalisation, w, rayNormalisation, pixels, count);
   normaliseArrayf(w, normalisation, forwardProjection);
   free(normalisation);
@@ -72,11 +68,6 @@ _declspec (dllexport) void artIteration(float* object, const float* actualProjec
     {
       current_pixel = *(this_pixel++);
       object[current_pixel] *= newProjection[i];
-      int fpclass = _fpclassf(object[current_pixel]);
-      if (fpclass != _FPCLASS_PN && fpclass != _FPCLASS_PZ)
-      {
-        int U = 0;
-      }
     }
   }
   free(newProjection);

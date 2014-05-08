@@ -18,6 +18,10 @@
 			<Item Name="tags_cluster.ctl" Type="VI" URL="../tags_cluster.ctl"/>
 		</Item>
 		<Item Name="Sub VIs" Type="Folder">
+			<Item Name="Atlas" Type="Folder">
+				<Item Name="makeSampleFromAtlas.vi" Type="VI" URL="../makeSampleFromAtlas.vi"/>
+				<Item Name="pullObjFromAtlas.vi" Type="VI" URL="../pullObjFromAtlas.vi"/>
+			</Item>
 			<Item Name="Backproject" Type="Folder">
 				<Item Name="backproject-master.vi" Type="VI" URL="../backproject-master.vi"/>
 				<Item Name="backproject-normalise.vi" Type="VI" URL="../backproject-normalise.vi"/>

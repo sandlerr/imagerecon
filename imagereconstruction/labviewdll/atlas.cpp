@@ -4,8 +4,13 @@
 #include <malloc.h>
 #include <math.h>
 
-_declspec (dllexport) void transform2d(const float rotation, const float* translationMatrix, const float* object, float* newObject, const int xshape, const int yshape, const int* centre)
+_declspec (dllexport) void transform2d(const float rotation, const float* translationMatrix, const float* object, float* newProjection, const int xshape, const int yshape, const int* centre)
 {
+  for (int i = 0; i < xshape; ++i)
+  {
+    newProjection[i] = 0;
+  }
+  float* newObject = (float*) malloc(xshape*yshape*sizeof(float));
   const float rotationMatrix[4] = { cos(rotation), -sin(rotation), sin(rotation), cos(rotation) };
   int c_x = centre[0];
   int c_y = centre[1];
@@ -37,6 +42,17 @@ _declspec (dllexport) void transform2d(const float rotation, const float* transl
     }
     coord = new_x + xshape * new_y;
     newObject[i] = object[coord];
+  }
+
+  //forward project
+  for (int i = 0; i < xshape; ++i)
+  {
+    for (int j = 0; j < yshape; j++)
+    {
+      newProjection[i] += newObject[i+j*xshape];
+    }
+    // normalise
+    newProjection[i] = newProjection[i] / yshape;
   }
 }
 
@@ -98,15 +114,16 @@ _declspec (dllexport) void transform3dh(const float* transformationMatrix, float
 
 
 // n is the number of inputs - the centre and transformation matrix in the 2d case, the homog transformation matrix in the other case. Matrices should be populated with inital guess
-_declspec (dllexport) int match_atlas(float* object, const int xshape, const int yshape, float* atlasObject, MKL_INT n, float* transformationMatrix, const int* centre)
+_declspec (dllexport) int match_atlas(float* object, const int xshape, const int yshape, float* sampleProjection, MKL_INT n, float* transformationMatrix, float* lowerBound, float* upperBound, const int* centre, MKL_INT iter, MKL_INT st_cr, float r1, float r2)
 {
   //extern void transform2d_for_jacobi(MKL_INT*, MKL_INT*, float*, float*, void*);
   int numPoints = xshape * yshape;
-  float* newObject = (float *) malloc(numPoints * sizeof(float));
-  _TRNSP_HANDLE_t handle;
-  MKL_INT iter1 = 5;
-  MKL_INT iter2 = 5;
-  float rs = 0.0;
+  int vector_size = yshape;
+  float* newProjection = (float *) malloc(vector_size * sizeof(float));
+  _TRNSPBC_HANDLE_t handle;
+  MKL_INT iter1 = 100;
+  MKL_INT iter2 = 100;
+  float rs = 100.0;
   /* reverse communication interface parameter */
   MKL_INT RCI_Request;      // reverse communication interface variable
   /* controls of rci cycle */
@@ -116,11 +133,11 @@ _declspec (dllexport) int match_atlas(float* object, const int xshape, const int
   /* jacobi matrix */
   float *fjac = NULL;
   /* number of iterations */
-  MKL_INT iter;
+  //MKL_INT iter;
   /* number of stop-criterion */
-  MKL_INT st_cr;
+  //MKL_INT st_cr;
   /* initial and final residuals */
-  float r1, r2;
+  //float r1, r2;
   /* cycle’s counter */
   MKL_INT i;
   /* results of input parameter checking */
@@ -132,12 +149,12 @@ _declspec (dllexport) int match_atlas(float* object, const int xshape, const int
   error = 0;
   /* memory allocation */
   mem_error = 1;
-  fvec = (float *) malloc(sizeof (float) * numPoints);
+  fvec = (float *) malloc(sizeof (float) * vector_size);
   if (fvec == NULL)
   {
     return mem_error;
   }
-  fjac = (float *) malloc(sizeof (float) * numPoints * n);
+  fjac = (float *) malloc(sizeof (float) * vector_size * n);
   if (fjac == NULL)
   {
     free(fvec);
@@ -146,20 +163,20 @@ _declspec (dllexport) int match_atlas(float* object, const int xshape, const int
   /* memory allocated correctly */
   mem_error = 0;
   /* set precisions for stop-criteria */
-  float eps[6];
-  for (i = 0; i < 6; i++)
+  float eps[6] = {.01f, 200.f, 0.01f, 0.01f, 0.01f, 0.01f};
+ /* for (i = 0; i < 6; i++)
   {
-    eps[i] = 0.00001f;
-  }
+    eps[i] = 200.f;
+  }*/
 
   /* set initial values */
-  for (i = 0; i < numPoints; i++)
+  for (i = 0; i < vector_size; i++)
     fvec[i] = 0.0;
-  for (i = 0; i < numPoints * n; i++)
+  for (i = 0; i < vector_size * n; i++)
     fjac[i] = 0.0;
 
 
-  MKL_INT result = strnlsp_init(&handle, &n, &numPoints, transformationMatrix, eps, &iter1, &iter2, &rs);
+  MKL_INT result = strnlspbc_init(&handle, &n, &vector_size, transformationMatrix, lowerBound, upperBound, eps, &iter1, &iter2, &rs);
 
   if (result != TR_SUCCESS)
   {
@@ -169,7 +186,7 @@ _declspec (dllexport) int match_atlas(float* object, const int xshape, const int
     return result;
   }
 
-  result = strnlsp_check(&handle, &n, &numPoints, fjac, fvec, eps, info);
+  result = strnlspbc_check(&handle, &n, &vector_size, fjac, fvec, lowerBound, upperBound, eps, info);
   if (result != TR_SUCCESS)
   {
     free(fvec);
@@ -182,7 +199,9 @@ _declspec (dllexport) int match_atlas(float* object, const int xshape, const int
     if (info[0] != 0 || // The handle is not valid.
       info[1] != 0 || // The fjac array is not valid.
       info[2] != 0 || // The fvec array is not valid.
-      info[3] != 0    // The eps array is not valid.
+      info[3] != 0 ||   // lowerbound is invalid
+      info[4] != 0 || // upperbound is invalid
+      info[5] != 0 // eps is invalid
       )
     {
       free(fvec);
@@ -198,7 +217,7 @@ _declspec (dllexport) int match_atlas(float* object, const int xshape, const int
   /* rci cycle */
   while (successful == 0)
   {
-    result = strnlsp_solve(&handle, fvec, fjac,  &RCI_Request);
+    result = strnlspbc_solve(&handle, fvec, fjac,  &RCI_Request);
     if (result != TR_SUCCESS)
     {
       free(fvec);
@@ -222,11 +241,17 @@ _declspec (dllexport) int match_atlas(float* object, const int xshape, const int
       n            in:     number of function variables
       x            in:     solution vector
       fvec    out:    function value f(x) */
-      transform2d(transformationMatrix[0], transformationMatrix + 1, object, newObject, xshape, yshape, centre);
-      for (int pixel = 0; pixel < numPoints; pixel++)
+      transform2d(transformationMatrix[0], transformationMatrix + 1, object, newProjection, xshape, yshape, centre);
+      float sum_least_squares = 0;
+      for (int pixel = 0; pixel < vector_size; pixel++)
       {
-        fvec[pixel] = newObject[pixel] - atlasObject[pixel];
+        fvec[pixel] = newProjection[pixel] - sampleProjection[pixel];
+        if (fvec[pixel] < 10000)
+          sum_least_squares += fvec[pixel] * fvec[pixel];
+        else
+          int fail = 1;
       }
+      sum_least_squares = sqrt(sum_least_squares);
     }
     else if (RCI_Request == 2)
     {
@@ -242,8 +267,8 @@ _declspec (dllexport) int match_atlas(float* object, const int xshape, const int
       vars_for_jac[1] = (float*) &xshape;
       vars_for_jac[2] = (float*) &yshape;
       vars_for_jac[3] = (float*) centre;
-      vars_for_jac[4] = atlasObject;
-      if (sjacobix(transform2d_for_jacobi, &n, &numPoints, fjac, transformationMatrix, eps, vars_for_jac) != TR_SUCCESS)
+      vars_for_jac[4] = sampleProjection;
+      if (sjacobix(transform2d_for_jacobi, &n, &vector_size, fjac, transformationMatrix, eps, vars_for_jac) != TR_SUCCESS)
       {
         free(fvec);
         free(fjac);
@@ -252,20 +277,21 @@ _declspec (dllexport) int match_atlas(float* object, const int xshape, const int
       }
     }
   }
-  if (strnlsp_get(&handle, &iter, &st_cr, &r1, &r2) != TR_SUCCESS)
+  if (strnlspbc_get(&handle, &iter, &st_cr, &r1, &r2) != TR_SUCCESS)
   {
     free(fvec);
     free(fjac);
     MKL_Free_Buffers();
     return result;
   }
-  if (strnlsp_delete(&handle) != TR_SUCCESS)
+  if (strnlspbc_delete(&handle) != TR_SUCCESS)
   {
     free(fvec);
     free(fjac);
     MKL_Free_Buffers();
     return result;
   }
+  transformationMatrix = fvec;
   return result;
 }
 
@@ -281,11 +307,11 @@ void transform2d_for_jacobi(MKL_INT* output_length, MKL_INT* input_length, float
   const float* centref = data_as_pointers[3];
   const int* centre = (int *) centref;
   const int numPoints = xshape * yshape;
-  float* newObject = (float*) malloc((sizeof(float) *numPoints));
-  const float* atlasObject = data_as_pointers[4];
-  transform2d(transformationMatrix[0], transformationMatrix + 1, object, newObject, xshape, yshape, centre);
+  float* newProjection = (float*) malloc((sizeof(float) * yshape));
+  const float* sampleProjection = data_as_pointers[4];
+  transform2d(transformationMatrix[0], transformationMatrix + 1, object, newProjection, xshape, yshape, centre);
   for (int pixel = 0; pixel < *output_length; pixel++)
   {
-    output[pixel] = newObject[pixel] - atlasObject[pixel];
+    output[pixel] = newProjection[pixel] - sampleProjection[pixel];
   }
 }

@@ -16,7 +16,7 @@ _declspec (dllexport) void getPixelsForProjection(const int w, const double angl
   float centre_y = (float) centre[1];
   int32_t* thispix = pixels;
   int32_t* thisnorm = normalisation;
-  // backproject
+  // backproject  
   if (angle <= PI / 4 || angle >= 3 * PI / 4)
   {
     double tan_angle = s_angle / c_angle;

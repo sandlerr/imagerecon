@@ -1,8 +1,18 @@
 #include "stdafx.h"
-#include "atlas.h"
+#include <atlas_imp.h>
 #include "mkl.h"
 #include <malloc.h>
 #include <math.h>
+
+struct Vars4Jac
+{
+  float* m_pObject;
+  int m_xshape;
+  int m_yshape;
+  int m_centre[3];
+  float* m_psampleProjection;
+  float* m_pnewProjection;
+};
 
 _declspec (dllexport) void transform2d(const float rotation, const float* translationMatrix, const float* object, float* newProjection, const int xshape, const int yshape, const int* centre)
 {
@@ -114,16 +124,15 @@ _declspec (dllexport) void transform3dh(const float* transformationMatrix, float
 
 
 // n is the number of inputs - the centre and transformation matrix in the 2d case, the homog transformation matrix in the other case. Matrices should be populated with inital guess
-_declspec (dllexport) int match_atlas(float* object, const int xshape, const int yshape, float* sampleProjection, MKL_INT n, float* transformationMatrix, float* lowerBound, float* upperBound, const int* centre, MKL_INT iter, MKL_INT st_cr, float r1, float r2)
+int match_atlas(float* object, const int xshape, const int yshape, float* sampleProjection, MKL_INT n, float* transformationMatrix, float* lowerBound, float* upperBound, const int* centre, MKL_INT* iter, MKL_INT* st_cr, float* r1, float* r2)
 {
   //extern void transform2d_for_jacobi(MKL_INT*, MKL_INT*, float*, float*, void*);
   int numPoints = xshape * yshape;
   int vector_size = yshape;
-  float* newProjection = (float *) malloc(vector_size * sizeof(float));
   _TRNSPBC_HANDLE_t handle;
   MKL_INT iter1 = 100;
   MKL_INT iter2 = 100;
-  float rs = 100.0;
+  float rs = 1.0;
   /* reverse communication interface parameter */
   MKL_INT RCI_Request;      // reverse communication interface variable
   /* controls of rci cycle */
@@ -163,8 +172,9 @@ _declspec (dllexport) int match_atlas(float* object, const int xshape, const int
   /* memory allocated correctly */
   mem_error = 0;
   /* set precisions for stop-criteria */
-  float eps[6] = {.01f, 200.f, 0.01f, 0.01f, 0.01f, 0.01f};
- /* for (i = 0; i < 6; i++)
+//  float eps[6] = {.0001f, 200.f, 0.01f, 0.0001f, 0.01f, 0.01f};
+  float eps[6] = { .000001f, .000001f, .000001f, .000001f, .000001f, .000001f };
+  /* for (i = 0; i < 6; i++)
   {
     eps[i] = 200.f;
   }*/
@@ -211,6 +221,17 @@ _declspec (dllexport) int match_atlas(float* object, const int xshape, const int
     }
   }
 
+  float* newProjection = (float*) malloc((sizeof(float) * yshape));
+  Vars4Jac myVars4Jac;
+  myVars4Jac.m_pObject = object;
+  myVars4Jac.m_centre[0] = centre[0];
+  myVars4Jac.m_centre[1] = centre[1];
+  myVars4Jac.m_centre[2] = NULL;
+  myVars4Jac.m_xshape = xshape;
+  myVars4Jac.m_yshape = yshape;
+  myVars4Jac.m_psampleProjection = sampleProjection;
+  myVars4Jac.m_pnewProjection = newProjection;
+
   /* set initial rci cycle variables */
   RCI_Request = 0;
   successful = 0;
@@ -222,6 +243,7 @@ _declspec (dllexport) int match_atlas(float* object, const int xshape, const int
     {
       free(fvec);
       free(fjac);
+      free(newProjection);
       MKL_Free_Buffers();
       return result;
     }
@@ -255,32 +277,22 @@ _declspec (dllexport) int match_atlas(float* object, const int xshape, const int
     }
     else if (RCI_Request == 2)
     {
-      /* compute jacobi matrix
-      extendet_powell      in:     external objective function
-      n               in:     number of function variables
-      m               in:     dimension of function value
-      fjac            out:    jacobi matrix
-      x               in:     solution vector
-      jac_eps         in:     jacobi calculation precision */
-      float* vars_for_jac[5];
-      vars_for_jac[0] = object;
-      vars_for_jac[1] = (float*) &xshape;
-      vars_for_jac[2] = (float*) &yshape;
-      vars_for_jac[3] = (float*) centre;
-      vars_for_jac[4] = sampleProjection;
-      if (sjacobix(transform2d_for_jacobi, &n, &vector_size, fjac, transformationMatrix, eps, vars_for_jac) != TR_SUCCESS)
+     
+      if (sjacobix(transform2d_for_jacobi, &n, &vector_size, fjac, transformationMatrix, eps, &myVars4Jac) != TR_SUCCESS)
       {
         free(fvec);
         free(fjac);
+        free(newProjection);
         MKL_Free_Buffers();
         return result;
       }
     }
   }
-  if (strnlspbc_get(&handle, &iter, &st_cr, &r1, &r2) != TR_SUCCESS)
+  if (strnlspbc_get(&handle, iter, st_cr, r1, r2) != TR_SUCCESS)
   {
     free(fvec);
     free(fjac);
+    free(newProjection);
     MKL_Free_Buffers();
     return result;
   }
@@ -288,6 +300,7 @@ _declspec (dllexport) int match_atlas(float* object, const int xshape, const int
   {
     free(fvec);
     free(fjac);
+    free(newProjection);
     MKL_Free_Buffers();
     return result;
   }
@@ -297,18 +310,15 @@ _declspec (dllexport) int match_atlas(float* object, const int xshape, const int
 
 void transform2d_for_jacobi(MKL_INT* output_length, MKL_INT* input_length, float* input, float* output, void* data)
 {
-  float** data_as_pointers = (float **) data;
+  Vars4Jac* pVars4Jac = (Vars4Jac*) data;
   const float* transformationMatrix = input;
-  const float* object = data_as_pointers[0];
-  const int* pxshape = (int*) data_as_pointers[1];
-  const int* pyshape = (int*) data_as_pointers[2];
-  int xshape = *pxshape;
-  int yshape = *pyshape;
-  const float* centref = data_as_pointers[3];
-  const int* centre = (int *) centref;
+  const float* object = pVars4Jac->m_pObject;
+  const int xshape = pVars4Jac->m_xshape;
+  const int yshape = pVars4Jac->m_yshape;
+  const int* centre = pVars4Jac->m_centre;
   const int numPoints = xshape * yshape;
-  float* newProjection = (float*) malloc((sizeof(float) * yshape));
-  const float* sampleProjection = data_as_pointers[4];
+  const float* sampleProjection = pVars4Jac->m_psampleProjection;
+  float* newProjection = pVars4Jac->m_pnewProjection;
   transform2d(transformationMatrix[0], transformationMatrix + 1, object, newProjection, xshape, yshape, centre);
   for (int pixel = 0; pixel < *output_length; pixel++)
   {

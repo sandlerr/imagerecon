@@ -1,5 +1,5 @@
-#include "labviewdll.h"
-#include "mkl.h"
+//#include <labviewdll.h>
+#include <mkl.h>
 
 #ifdef LABVIEWDLL_EXPORTS
 #define DefMode _declspec (dllexport)

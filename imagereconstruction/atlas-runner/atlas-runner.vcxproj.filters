@@ -24,18 +24,6 @@
     <ClInclude Include="targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="labviewdll.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="projection.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="art.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="atlas.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\inc\atlas_imp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -44,19 +32,10 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="labviewdll.cpp">
+    <ClCompile Include="atlas-runner.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="dllmain.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="projection.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="art.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="atlas.cpp">
+    <ClCompile Include="..\labviewdll\atlas.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

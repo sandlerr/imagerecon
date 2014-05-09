@@ -14,6 +14,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "labviewdll", "labviewdll\la
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FFT runner", "FFT runner\FFT runner.vcxproj", "{14CAD818-8D30-455B-B9A0-818D9AA93DFA}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "atlas-runner", "atlas-runner\atlas-runner.vcxproj", "{12D71190-4FD4-4A6C-B122-BB586040C13D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Mixed Platforms = Debug|Mixed Platforms
@@ -46,6 +48,16 @@ Global
 		{14CAD818-8D30-455B-B9A0-818D9AA93DFA}.Release|Win32.ActiveCfg = Release|Win32
 		{14CAD818-8D30-455B-B9A0-818D9AA93DFA}.Release|Win32.Build.0 = Release|Win32
 		{14CAD818-8D30-455B-B9A0-818D9AA93DFA}.Release|x64.ActiveCfg = Release|Win32
+		{12D71190-4FD4-4A6C-B122-BB586040C13D}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{12D71190-4FD4-4A6C-B122-BB586040C13D}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{12D71190-4FD4-4A6C-B122-BB586040C13D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{12D71190-4FD4-4A6C-B122-BB586040C13D}.Debug|Win32.Build.0 = Debug|Win32
+		{12D71190-4FD4-4A6C-B122-BB586040C13D}.Debug|x64.ActiveCfg = Debug|Win32
+		{12D71190-4FD4-4A6C-B122-BB586040C13D}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{12D71190-4FD4-4A6C-B122-BB586040C13D}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{12D71190-4FD4-4A6C-B122-BB586040C13D}.Release|Win32.ActiveCfg = Release|Win32
+		{12D71190-4FD4-4A6C-B122-BB586040C13D}.Release|Win32.Build.0 = Release|Win32
+		{12D71190-4FD4-4A6C-B122-BB586040C13D}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

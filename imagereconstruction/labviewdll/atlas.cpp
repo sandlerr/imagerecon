@@ -3,6 +3,8 @@
 #include "mkl.h"
 #include <malloc.h>
 #include <math.h>
+#include <fstream>
+#include <iostream>
 
 struct Vars4Jac
 {
@@ -14,7 +16,12 @@ struct Vars4Jac
   float* m_pnewProjection;
 };
 
-_declspec (dllexport) void transform2d(const float rotation, const float* translationMatrix, const float* object, float* newProjection, const int xshape, const int yshape, const int* centre)
+/*struct transform2d_params
+{
+};*/
+
+
+void transform2d_test(const float rotation, const float* translationMatrix, const float* object, float* newProjection, const int xshape, const int yshape, const int* centre)
 {
   for (int i = 0; i < xshape; ++i)
   {
@@ -64,6 +71,7 @@ _declspec (dllexport) void transform2d(const float rotation, const float* transl
     // normalise
     newProjection[i] = newProjection[i] / yshape;
   }
+  free(newObject);
 }
 
 _declspec (dllexport) void transform3dh(const float* transformationMatrix, float* object, const int xshape, const int yshape, const int zshape)
@@ -122,17 +130,36 @@ _declspec (dllexport) void transform3dh(const float* transformationMatrix, float
   memcpy(object, newObject, numPoints * sizeof(float));
 }
 
+void transform2d_for_jacobi(MKL_INT* output_length, MKL_INT* input_length, float* input, float* output, void* data)
+{
+  Vars4Jac* pVars4Jac = (Vars4Jac*) data;
+  const float* transformationMatrix = input;
+  const float* object = pVars4Jac->m_pObject;
+  const int xshape = pVars4Jac->m_xshape;
+  const int yshape = pVars4Jac->m_yshape;
+  const int* centre = pVars4Jac->m_centre;
+  const int numPoints = xshape * yshape;
+  const float* sampleProjection = pVars4Jac->m_psampleProjection;
+  float* newProjection = pVars4Jac->m_pnewProjection;
+  float rotation = transformationMatrix[0];
+  transform2d_test(rotation, transformationMatrix + 1, object, newProjection, xshape, yshape, centre);
+  for (int pixel = 0; pixel < *output_length; pixel++)
+  {
+    output[pixel] = newProjection[pixel] - sampleProjection[pixel];
+  }
+}
 
 // n is the number of inputs - the centre and transformation matrix in the 2d case, the homog transformation matrix in the other case. Matrices should be populated with inital guess
 int match_atlas(float* object, const int xshape, const int yshape, float* sampleProjection, MKL_INT n, float* transformationMatrix, float* lowerBound, float* upperBound, const int* centre, MKL_INT* iter, MKL_INT* st_cr, float* r1, float* r2)
 {
+  
   //extern void transform2d_for_jacobi(MKL_INT*, MKL_INT*, float*, float*, void*);
   int numPoints = xshape * yshape;
   int vector_size = yshape;
   _TRNSPBC_HANDLE_t handle;
-  MKL_INT iter1 = 100;
-  MKL_INT iter2 = 100;
-  float rs = 1.0;
+  MKL_INT iter1 = 1E9;
+  MKL_INT iter2 = 1E9;
+  float rs = 100.;
   /* reverse communication interface parameter */
   MKL_INT RCI_Request;      // reverse communication interface variable
   /* controls of rci cycle */
@@ -173,19 +200,19 @@ int match_atlas(float* object, const int xshape, const int yshape, float* sample
   mem_error = 0;
   /* set precisions for stop-criteria */
 //  float eps[6] = {.0001f, 200.f, 0.01f, 0.0001f, 0.01f, 0.01f};
-  float eps[6] = { .000001f, .000001f, .000001f, .000001f, .000001f, .000001f };
+  float eps[6] = { 1E-20, 100.0, .000001, 1E-20, 1E-30, 1.0 };
+  float jacobi_eps = 1.0;
   /* for (i = 0; i < 6; i++)
   {
     eps[i] = 200.f;
   }*/
-
+  
   /* set initial values */
   for (i = 0; i < vector_size; i++)
     fvec[i] = 0.0;
   for (i = 0; i < vector_size * n; i++)
     fjac[i] = 0.0;
-
-
+  
   MKL_INT result = strnlspbc_init(&handle, &n, &vector_size, transformationMatrix, lowerBound, upperBound, eps, &iter1, &iter2, &rs);
 
   if (result != TR_SUCCESS)
@@ -263,7 +290,8 @@ int match_atlas(float* object, const int xshape, const int yshape, float* sample
       n            in:     number of function variables
       x            in:     solution vector
       fvec    out:    function value f(x) */
-      transform2d(transformationMatrix[0], transformationMatrix + 1, object, newProjection, xshape, yshape, centre);
+      float rotation = *transformationMatrix;
+      transform2d_test(rotation, transformationMatrix + 1, object, newProjection, xshape, yshape, centre);
       float sum_least_squares = 0;
       for (int pixel = 0; pixel < vector_size; pixel++)
       {
@@ -278,7 +306,7 @@ int match_atlas(float* object, const int xshape, const int yshape, float* sample
     else if (RCI_Request == 2)
     {
      
-      if (sjacobix(transform2d_for_jacobi, &n, &vector_size, fjac, transformationMatrix, eps, &myVars4Jac) != TR_SUCCESS)
+      if (sjacobix(transform2d_for_jacobi, &n, &vector_size, fjac, transformationMatrix, &jacobi_eps, &myVars4Jac) != TR_SUCCESS)
       {
         free(fvec);
         free(fjac);
@@ -304,24 +332,45 @@ int match_atlas(float* object, const int xshape, const int yshape, float* sample
     MKL_Free_Buffers();
     return result;
   }
-  transformationMatrix = fvec;
   return result;
 }
 
-void transform2d_for_jacobi(MKL_INT* output_length, MKL_INT* input_length, float* input, float* output, void* data)
+int serialise_for_atlas(float* object, const int xshape, const int yshape, float* sampleProjection, MKL_INT n, float* transformationMatrix, float* lowerBound, float* upperBound, const int* centre, MKL_INT* iter, MKL_INT* st_cr, float* r1, float* r2)
 {
-  Vars4Jac* pVars4Jac = (Vars4Jac*) data;
-  const float* transformationMatrix = input;
-  const float* object = pVars4Jac->m_pObject;
-  const int xshape = pVars4Jac->m_xshape;
-  const int yshape = pVars4Jac->m_yshape;
-  const int* centre = pVars4Jac->m_centre;
-  const int numPoints = xshape * yshape;
-  const float* sampleProjection = pVars4Jac->m_psampleProjection;
-  float* newProjection = pVars4Jac->m_pnewProjection;
-  transform2d(transformationMatrix[0], transformationMatrix + 1, object, newProjection, xshape, yshape, centre);
-  for (int pixel = 0; pixel < *output_length; pixel++)
+  std::ofstream ofs;
+  ofs.open("D:\\work\\uni\\FYP\\workingData\\data.bin", std::ios_base::binary | std::ios_base::trunc);
+  if (!ofs.is_open())
   {
-    output[pixel] = newProjection[pixel] - sampleProjection[pixel];
+    std::cout << "error in open" << std::endl;
+    return -1;
   }
+  else
+  {
+
+    ofs.write((char*) (void*) &xshape, sizeof(xshape));
+    ofs.write((char*) (void*) &yshape, sizeof(yshape));
+
+    ofs.write((char*) (void*) object, sizeof(float) * xshape * yshape);
+
+
+    ofs.write((char*) (void*) sampleProjection, sizeof(float) * yshape);
+
+    ofs.write((char*) (void*) &n, sizeof(n));
+
+    ofs.write((char*) (void*) transformationMatrix, sizeof(float) * n);
+    ofs.write((char*) (void*) lowerBound, sizeof(float) * n);
+    ofs.write((char*) (void*) upperBound, sizeof(float) * n);
+
+    int centreLength = 2;
+    ofs.write((char*) (void*) &centreLength, sizeof(centreLength));
+    ofs.write((char*) (void*) centre, sizeof(int) * centreLength);
+
+    ofs.write((char*) (void*) iter, sizeof(int));
+    ofs.write((char*) (void*) st_cr, sizeof(int));
+    ofs.write((char*) (void*) r1, sizeof(float));
+    ofs.write((char*) (void*) r2, sizeof(float));
+
+    ofs.close();
+  }
+  return 0;
 }

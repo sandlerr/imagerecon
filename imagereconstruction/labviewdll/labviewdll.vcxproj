@@ -103,7 +103,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;_USRDLL;LABVIEWDLL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>D:\work\uni\FYP\reconrepo\tiff-4.0.3\lib;D:\work\uni\FYP\reconrepo\imagereconstruction\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\work\uni\FYP\reconrepo\tiff-4.0.3\lib;D:\work\uni\FYP\reconrepo\imagereconstruction\inc;D:\Program Files %28x86%29\Intel\Composer XE 2013 SP1\mkl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -140,7 +140,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;LABVIEWDLL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>D:\work\uni\FYP\reconrepo\tiff-4.0.3\lib;D:\work\uni\FYP\reconrepo\imagereconstruction\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\work\uni\FYP\reconrepo\tiff-4.0.3\lib;D:\work\uni\FYP\reconrepo\imagereconstruction\inc;D:\Program Files %28x86%29\Intel\Composer XE 2013 SP1\mkl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>

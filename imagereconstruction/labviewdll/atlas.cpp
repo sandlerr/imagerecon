@@ -5,6 +5,7 @@
 #include <math.h>
 #include <fstream>
 #include <iostream>
+#include "projection.h"
 
 struct Vars4Jac
 {
@@ -21,21 +22,23 @@ struct Vars4Jac
 };*/
 
 
-void transform2d_test(const float rotation, const float* translationMatrix, const float* object, float* newProjection, const int xshape, const int yshape, const int* centre)
+void transform2d(const float rotation, const float* translationMatrix, const float* object, float* newProjection, const int xshape, const int yshape, const int* centre)
 {
-  for (int i = 0; i < xshape; ++i)
-  {
-    newProjection[i] = 0;
-  }
   float* newObject = (float*) malloc(xshape*yshape*sizeof(float));
-  const float rotationMatrix[4] = { cos(rotation), -sin(rotation), sin(rotation), cos(rotation) };
-  int c_x = centre[0];
-  int c_y = centre[1];
-  float addToX = c_x + translationMatrix[0];
-  float addToY = c_y + translationMatrix[1];
+  float addToX = translationMatrix[0];
+  float addToY = translationMatrix[1];
   int numPoints = xshape * yshape;
+  int* normalisation = (int*) malloc(xshape*xshape*sizeof(int));
+  memset(normalisation, 0, xshape*xshape*sizeof(int));
+  int* pixels = (int*) malloc(xshape*xshape*sizeof(int));
+  memset(pixels, 0, xshape*xshape*sizeof(int));
+  int* count = (int*) malloc(xshape*sizeof(int));
+  memset(count, 0, xshape*sizeof(int));
+  int* rayNormalisation = (int*) malloc(xshape*sizeof(int));
+  memset(rayNormalisation, 0, xshape*sizeof(int));
   int old_x = -1;
   int old_y = 0;
+  
   for (int i = 0; i < numPoints; i++)
   {
     int new_x, new_y;
@@ -45,13 +48,13 @@ void transform2d_test(const float rotation, const float* translationMatrix, cons
       ++old_y;
       old_x = 0;
     }
-    new_x = (int) (rotationMatrix[0] * (old_x - c_x) + rotationMatrix[2] * (old_y-c_y) + 0.5f + addToX); // add 0.5 because conversion to int rounds down
+    new_x = (int) ( old_x + 0.5f + addToX); // add 0.5 because conversion to int rounds down
     if (new_x >= xshape || new_x < 0)
     {
       newObject[i] = 0;
       continue;
     }
-    new_y = (int) (rotationMatrix[1] * (old_x - c_x) + rotationMatrix[3] * (old_y - c_y) + 0.5f + addToY);
+    new_y = (int) (old_y  + 0.5f + addToY);
     if (new_y >= yshape || new_y < 0)
     {
       newObject[i] = 0;
@@ -60,17 +63,13 @@ void transform2d_test(const float rotation, const float* translationMatrix, cons
     coord = new_x + xshape * new_y;
     newObject[i] = object[coord];
   }
-
-  //forward project
-  for (int i = 0; i < xshape; ++i)
-  {
-    for (int j = 0; j < yshape; j++)
-    {
-      newProjection[i] += newObject[i+j*xshape];
-    }
-    // normalise
-    newProjection[i] = newProjection[i] / yshape;
-  }
+  getPixelsForProjection(xshape,(double) rotation, centre, normalisation, pixels, count);
+  sliceFPf(newObject, newProjection, rayNormalisation, xshape, normalisation, pixels, count);
+  normaliseArrayf(xshape, rayNormalisation, newProjection);
+  free(normalisation);
+  free(pixels);
+  free(count);
+  free(rayNormalisation);
   free(newObject);
 }
 
@@ -142,7 +141,7 @@ void transform2d_for_jacobi(MKL_INT* output_length, MKL_INT* input_length, float
   const float* sampleProjection = pVars4Jac->m_psampleProjection;
   float* newProjection = pVars4Jac->m_pnewProjection;
   float rotation = transformationMatrix[0];
-  transform2d_test(rotation, transformationMatrix + 1, object, newProjection, xshape, yshape, centre);
+  transform2d(rotation, transformationMatrix + 1, object, newProjection, xshape, yshape, centre);
   for (int pixel = 0; pixel < *output_length; pixel++)
   {
     output[pixel] = newProjection[pixel] - sampleProjection[pixel];
@@ -249,6 +248,7 @@ int match_atlas(float* object, const int xshape, const int yshape, float* sample
   }
 
   float* newProjection = (float*) malloc((sizeof(float) * yshape));
+  memset(newProjection, 0, sizeof(float) *yshape);
   Vars4Jac myVars4Jac;
   myVars4Jac.m_pObject = object;
   myVars4Jac.m_centre[0] = centre[0];
@@ -291,7 +291,7 @@ int match_atlas(float* object, const int xshape, const int yshape, float* sample
       x            in:     solution vector
       fvec    out:    function value f(x) */
       float rotation = *transformationMatrix;
-      transform2d_test(rotation, transformationMatrix + 1, object, newProjection, xshape, yshape, centre);
+      transform2d(rotation, transformationMatrix + 1, object, newProjection, xshape, yshape, centre);
       float sum_least_squares = 0;
       for (int pixel = 0; pixel < vector_size; pixel++)
       {

@@ -83,11 +83,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\inc\atlas_imp.h" />
+    <ClInclude Include="..\labviewdll\projection.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\labviewdll\atlas.cpp" />
+    <ClCompile Include="..\labviewdll\projection.cpp" />
     <ClCompile Include="atlas-runner.cpp" />
     <ClCompile Include="stdafx.cpp" />
   </ItemGroup>

@@ -14,31 +14,28 @@ struct Vars4Jac
   int m_yshape;
   int m_centre[3];
   float* m_psampleProjection;
+  double* m_psampleProjectionAngles;
   float* m_pnewProjection;
 };
 
-/*struct transform2d_params
-{
-};*/
 
-
-void transform2d(const float rotation, const float* translationMatrix, const float* object, float* newProjection, const int xshape, const int yshape, const int* centre)
+_declspec (dllexport) void transform2dproj(const float rotation, const float* translationMatrix, const float* object, float* newProjection, const double* projectionAngles, const int xshape, const int yshape, const int* centre)
 {
   float* newObject = (float*) malloc(xshape*yshape*sizeof(float));
   float addToX = translationMatrix[0];
   float addToY = translationMatrix[1];
   int numPoints = xshape * yshape;
-  int* normalisation = (int*) malloc(xshape*xshape*sizeof(int));
-  memset(normalisation, 0, xshape*xshape*sizeof(int));
-  int* pixels = (int*) malloc(xshape*xshape*sizeof(int));
-  memset(pixels, 0, xshape*xshape*sizeof(int));
-  int* count = (int*) malloc(xshape*sizeof(int));
-  memset(count, 0, xshape*sizeof(int));
-  int* rayNormalisation = (int*) malloc(xshape*sizeof(int));
-  memset(rayNormalisation, 0, xshape*sizeof(int));
+  int* normalisation = (int*) malloc(3 * xshape*xshape*sizeof(int));
+  memset(normalisation, 0, 3 * xshape*xshape*sizeof(int));
+  int* pixels = (int*) malloc(3 * xshape*xshape*sizeof(int));
+  memset(pixels, 0, 3 * xshape*xshape*sizeof(int));
+  int* count = (int*) malloc(3 * xshape*sizeof(int));
+  memset(count, 0, 3 * xshape*sizeof(int));
+  int* rayNormalisation = (int*) malloc(3 * xshape*sizeof(int));
+  memset(rayNormalisation, 0, 3 * xshape*sizeof(int));
   int old_x = -1;
   int old_y = 0;
-  
+
   for (int i = 0; i < numPoints; i++)
   {
     int new_x, new_y;
@@ -48,13 +45,13 @@ void transform2d(const float rotation, const float* translationMatrix, const flo
       ++old_y;
       old_x = 0;
     }
-    new_x = (int) ( old_x + 0.5f + addToX); // add 0.5 because conversion to int rounds down
+    new_x = (int) (old_x + 0.5f + addToX); // add 0.5 because conversion to int rounds down
     if (new_x >= xshape || new_x < 0)
     {
       newObject[i] = 0;
       continue;
     }
-    new_y = (int) (old_y  + 0.5f + addToY);
+    new_y = (int) (old_y + 0.5f + addToY);
     if (new_y >= yshape || new_y < 0)
     {
       newObject[i] = 0;
@@ -63,9 +60,12 @@ void transform2d(const float rotation, const float* translationMatrix, const flo
     coord = new_x + xshape * new_y;
     newObject[i] = object[coord];
   }
-  getPixelsForProjection(xshape,(double) rotation, centre, normalisation, pixels, count);
-  sliceFPf(newObject, newProjection, rayNormalisation, xshape, normalisation, pixels, count);
-  normaliseArrayf(xshape, rayNormalisation, newProjection);
+  for (int i = 0; i < 3; i++)
+  {
+    getPixelsForProjection(xshape, (double) rotation + projectionAngles[i], centre, normalisation + i*xshape*xshape, pixels + i*xshape*xshape, count + i*xshape);
+    sliceFPf(newObject, newProjection + i*xshape, rayNormalisation + i*xshape, xshape, normalisation + i*xshape*xshape, pixels + i*xshape*xshape, count + i*xshape);
+    normaliseArrayf(xshape, rayNormalisation + i*xshape, newProjection + i*xshape);
+  }
   free(normalisation);
   free(pixels);
   free(count);
@@ -73,61 +73,45 @@ void transform2d(const float rotation, const float* translationMatrix, const flo
   free(newObject);
 }
 
-_declspec (dllexport) void transform3dh(const float* transformationMatrix, float* object, const int xshape, const int yshape, const int zshape)
+_declspec (dllexport) void transform2dimage(const float rotation, const float* translationMatrix, const uint8_t* object, const int xshape, const int yshape, const int* centre, uint8_t* newObject)
 {
-  int numPoints = xshape * yshape * zshape;
-  float* newObject = (float*) malloc(sizeof(float) * numPoints);
-  float old_xyz[4]; // homogeneous vector
-  float new_xyz[4];
-  int old_xyzi[3] = { -1, 0, 0 };
-  int new_xyzi[3];
-  int coord;
+  const float rotationMatrix[4] = { cos(rotation), -sin(rotation), sin(rotation), cos(rotation) };
+  int c_x = centre[0];
+  int c_y = centre[1];
+  float addToX = c_x + translationMatrix[0];
+  float addToY = c_y + translationMatrix[1];
+  int numPoints = xshape * yshape;
+  int old_x = -1;
+  int old_y = 0;
 
   for (int i = 0; i < numPoints; i++)
   {
-    if (++(old_xyzi[0]) == xshape)
+    int new_x, new_y;
+    int coord;
+    if (++old_x == xshape)
     {
-      old_xyzi[0] = 0;
-      if (++(old_xyzi[1]) == yshape)
-      {
-        old_xyzi[1] = 0;
-        ++(old_xyzi[2]);
-      }
+      ++old_y;
+      old_x = 0;
     }
-    for (int j = 0; j < 3; j++)
-    {
-      old_xyz[j] = (float) old_xyzi[j];
-    }
-    old_xyz[3] = 1;
-    cblas_sgemv(CblasColMajor, CblasNoTrans, 4, 4, 1, transformationMatrix, 4, old_xyz, 1, 0, new_xyz, 1); // transformation matrix times pixel vector
-    float scale_factor = 1 / new_xyz[3];
-    cblas_sscal(4, scale_factor, new_xyz, 1); // divide by the fourth element of the homogeneous vector
-    for (int j = 0; j < 3; j++)
-    {
-      new_xyzi[j] = (int) (new_xyz[j]+0.5f);
-    }
-    
-    if (new_xyzi[0] >= xshape || new_xyzi[0] < 0)
+    new_x = (int) (rotationMatrix[0] * (old_x - c_x) + rotationMatrix[2] * (old_y - c_y) + 0.5f + addToX); // add 0.5 because conversion to int rounds down
+    if (new_x >= xshape || new_x < 0)
     {
       newObject[i] = 0;
       continue;
     }
-    if (new_xyzi[1] >= yshape || new_xyzi[1] < 0)
+    new_y = (int) (rotationMatrix[1] * (old_x - c_x) + rotationMatrix[3] * (old_y - c_y) + 0.5f + addToY);
+    if (new_y >= yshape || new_y < 0)
     {
       newObject[i] = 0;
       continue;
     }
-    if (new_xyzi[1] >= zshape || new_xyzi[1] < 0)
-    {
-      newObject[i] = 0;
-      continue;
-    }
-
-    coord = new_xyzi[0] + xshape * new_xyzi[1] + xshape*yshape*new_xyzi[2];
+    coord = new_x + xshape * new_y;
     newObject[i] = object[coord];
   }
-  memcpy(object, newObject, numPoints * sizeof(float));
+
+
 }
+
 
 void transform2d_for_jacobi(MKL_INT* output_length, MKL_INT* input_length, float* input, float* output, void* data)
 {
@@ -139,9 +123,10 @@ void transform2d_for_jacobi(MKL_INT* output_length, MKL_INT* input_length, float
   const int* centre = pVars4Jac->m_centre;
   const int numPoints = xshape * yshape;
   const float* sampleProjection = pVars4Jac->m_psampleProjection;
+  const double* projectionAngles = pVars4Jac->m_psampleProjectionAngles;
   float* newProjection = pVars4Jac->m_pnewProjection;
   float rotation = transformationMatrix[0];
-  transform2d(rotation, transformationMatrix + 1, object, newProjection, xshape, yshape, centre);
+  transform2dproj(rotation, transformationMatrix + 1, object, newProjection, projectionAngles, xshape, yshape, centre);
   for (int pixel = 0; pixel < *output_length; pixel++)
   {
     output[pixel] = newProjection[pixel] - sampleProjection[pixel];
@@ -149,15 +134,15 @@ void transform2d_for_jacobi(MKL_INT* output_length, MKL_INT* input_length, float
 }
 
 // n is the number of inputs - the centre and transformation matrix in the 2d case, the homog transformation matrix in the other case. Matrices should be populated with inital guess
-int match_atlas(float* object, const int xshape, const int yshape, float* sampleProjection, MKL_INT n, float* transformationMatrix, float* lowerBound, float* upperBound, const int* centre, MKL_INT* iter, MKL_INT* st_cr, float* r1, float* r2)
+int match_atlas(float* object, const int xshape, const int yshape, float* sampleProjection, double* sampleProjectionAngles, MKL_INT n, float* transformationMatrix, float* lowerBound, float* upperBound, const int* centre, MKL_INT* iter, MKL_INT* st_cr, float* r1, float* r2)
 {
   
   //extern void transform2d_for_jacobi(MKL_INT*, MKL_INT*, float*, float*, void*);
   int numPoints = xshape * yshape;
-  int vector_size = yshape;
+  int vector_size = 3*yshape;
   _TRNSPBC_HANDLE_t handle;
-  MKL_INT iter1 = 1E9;
-  MKL_INT iter2 = 1E9;
+  MKL_INT iter1 = 100000;
+  MKL_INT iter2 = 100000;
   float rs = 100.;
   /* reverse communication interface parameter */
   MKL_INT RCI_Request;      // reverse communication interface variable
@@ -199,7 +184,7 @@ int match_atlas(float* object, const int xshape, const int yshape, float* sample
   mem_error = 0;
   /* set precisions for stop-criteria */
 //  float eps[6] = {.0001f, 200.f, 0.01f, 0.0001f, 0.01f, 0.01f};
-  float eps[6] = { 1E-20, 100.0, .000001, 1E-20, 1E-30, 1.0 };
+  float eps[6] = { 1E-20f, 100.0f, .000001f, 1E-20f, 1E-30f, 1.0f };
   float jacobi_eps = 1.0;
   /* for (i = 0; i < 6; i++)
   {
@@ -247,8 +232,8 @@ int match_atlas(float* object, const int xshape, const int yshape, float* sample
     }
   }
 
-  float* newProjection = (float*) malloc((sizeof(float) * yshape));
-  memset(newProjection, 0, sizeof(float) *yshape);
+  float* newProjection = (float*) malloc((sizeof(float) * vector_size));
+  memset(newProjection, 0, sizeof(float) * vector_size);
   Vars4Jac myVars4Jac;
   myVars4Jac.m_pObject = object;
   myVars4Jac.m_centre[0] = centre[0];
@@ -257,6 +242,7 @@ int match_atlas(float* object, const int xshape, const int yshape, float* sample
   myVars4Jac.m_xshape = xshape;
   myVars4Jac.m_yshape = yshape;
   myVars4Jac.m_psampleProjection = sampleProjection;
+  myVars4Jac.m_psampleProjectionAngles = sampleProjectionAngles;
   myVars4Jac.m_pnewProjection = newProjection;
 
   /* set initial rci cycle variables */
@@ -291,7 +277,7 @@ int match_atlas(float* object, const int xshape, const int yshape, float* sample
       x            in:     solution vector
       fvec    out:    function value f(x) */
       float rotation = *transformationMatrix;
-      transform2d(rotation, transformationMatrix + 1, object, newProjection, xshape, yshape, centre);
+      transform2dproj(rotation, transformationMatrix + 1, object, newProjection, sampleProjectionAngles, xshape, yshape, centre);
       float sum_least_squares = 0;
       for (int pixel = 0; pixel < vector_size; pixel++)
       {
@@ -335,7 +321,7 @@ int match_atlas(float* object, const int xshape, const int yshape, float* sample
   return result;
 }
 
-int serialise_for_atlas(float* object, const int xshape, const int yshape, float* sampleProjection, MKL_INT n, float* transformationMatrix, float* lowerBound, float* upperBound, const int* centre, MKL_INT* iter, MKL_INT* st_cr, float* r1, float* r2)
+int serialise_for_atlas(float* object, const int xshape, const int yshape, float* sampleProjection, double* sampleProjectionAngles, MKL_INT n, float* transformationMatrix, float* lowerBound, float* upperBound, const int* centre, MKL_INT* iter, MKL_INT* st_cr, float* r1, float* r2)
 {
   std::ofstream ofs;
   ofs.open("D:\\work\\uni\\FYP\\workingData\\data.bin", std::ios_base::binary | std::ios_base::trunc);
@@ -354,6 +340,7 @@ int serialise_for_atlas(float* object, const int xshape, const int yshape, float
 
 
     ofs.write((char*) (void*) sampleProjection, sizeof(float) * yshape);
+    ofs.write((char*) (void*) sampleProjectionAngles, sizeof(double) * 3);
 
     ofs.write((char*) (void*) &n, sizeof(n));
 
@@ -373,4 +360,62 @@ int serialise_for_atlas(float* object, const int xshape, const int yshape, float
     ofs.close();
   }
   return 0;
+}
+
+
+// not in use
+_declspec (dllexport) void transform3dh(const float* transformationMatrix, float* object, const int xshape, const int yshape, const int zshape)
+{
+  int numPoints = xshape * yshape * zshape;
+  float* newObject = (float*) malloc(sizeof(float) * numPoints);
+  float old_xyz[4]; // homogeneous vector
+  float new_xyz[4];
+  int old_xyzi[3] = { -1, 0, 0 };
+  int new_xyzi[3];
+  int coord;
+
+  for (int i = 0; i < numPoints; i++)
+  {
+    if (++(old_xyzi[0]) == xshape)
+    {
+      old_xyzi[0] = 0;
+      if (++(old_xyzi[1]) == yshape)
+      {
+        old_xyzi[1] = 0;
+        ++(old_xyzi[2]);
+      }
+    }
+    for (int j = 0; j < 3; j++)
+    {
+      old_xyz[j] = (float) old_xyzi[j];
+    }
+    old_xyz[3] = 1;
+    cblas_sgemv(CblasColMajor, CblasNoTrans, 4, 4, 1, transformationMatrix, 4, old_xyz, 1, 0, new_xyz, 1); // transformation matrix times pixel vector
+    float scale_factor = 1 / new_xyz[3];
+    cblas_sscal(4, scale_factor, new_xyz, 1); // divide by the fourth element of the homogeneous vector
+    for (int j = 0; j < 3; j++)
+    {
+      new_xyzi[j] = (int) (new_xyz[j] + 0.5f);
+    }
+
+    if (new_xyzi[0] >= xshape || new_xyzi[0] < 0)
+    {
+      newObject[i] = 0;
+      continue;
+    }
+    if (new_xyzi[1] >= yshape || new_xyzi[1] < 0)
+    {
+      newObject[i] = 0;
+      continue;
+    }
+    if (new_xyzi[1] >= zshape || new_xyzi[1] < 0)
+    {
+      newObject[i] = 0;
+      continue;
+    }
+
+    coord = new_xyzi[0] + xshape * new_xyzi[1] + xshape*yshape*new_xyzi[2];
+    newObject[i] = object[coord];
+  }
+  memcpy(object, newObject, numPoints * sizeof(float));
 }

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30110.0
+VisualStudioVersion = 12.0.30501.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{B42577EC-C830-4397-B897-44B62012DCC0}"
 	ProjectSection(SolutionItems) = preProject
@@ -42,7 +42,7 @@ Global
 		{14CAD818-8D30-455B-B9A0-818D9AA93DFA}.Debug|Mixed Platforms.Build.0 = Debug|Win32
 		{14CAD818-8D30-455B-B9A0-818D9AA93DFA}.Debug|Win32.ActiveCfg = Debug|Win32
 		{14CAD818-8D30-455B-B9A0-818D9AA93DFA}.Debug|Win32.Build.0 = Debug|Win32
-		{14CAD818-8D30-455B-B9A0-818D9AA93DFA}.Debug|x64.ActiveCfg = Debug|Win32
+		{14CAD818-8D30-455B-B9A0-818D9AA93DFA}.Debug|x64.ActiveCfg = Debug|x64
 		{14CAD818-8D30-455B-B9A0-818D9AA93DFA}.Release|Mixed Platforms.ActiveCfg = Release|Win32
 		{14CAD818-8D30-455B-B9A0-818D9AA93DFA}.Release|Mixed Platforms.Build.0 = Release|Win32
 		{14CAD818-8D30-455B-B9A0-818D9AA93DFA}.Release|Win32.ActiveCfg = Release|Win32
@@ -52,7 +52,7 @@ Global
 		{12D71190-4FD4-4A6C-B122-BB586040C13D}.Debug|Mixed Platforms.Build.0 = Debug|Win32
 		{12D71190-4FD4-4A6C-B122-BB586040C13D}.Debug|Win32.ActiveCfg = Debug|Win32
 		{12D71190-4FD4-4A6C-B122-BB586040C13D}.Debug|Win32.Build.0 = Debug|Win32
-		{12D71190-4FD4-4A6C-B122-BB586040C13D}.Debug|x64.ActiveCfg = Debug|Win32
+		{12D71190-4FD4-4A6C-B122-BB586040C13D}.Debug|x64.ActiveCfg = Debug|x64
 		{12D71190-4FD4-4A6C-B122-BB586040C13D}.Release|Mixed Platforms.ActiveCfg = Release|Win32
 		{12D71190-4FD4-4A6C-B122-BB586040C13D}.Release|Mixed Platforms.Build.0 = Release|Win32
 		{12D71190-4FD4-4A6C-B122-BB586040C13D}.Release|Win32.ActiveCfg = Release|Win32

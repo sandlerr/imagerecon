@@ -14,6 +14,7 @@ int _tmain(int argc, _TCHAR* argv[])
   float* object = NULL;
   int objectLength = NULL;
   float* sampleProjection = NULL;
+  double sampleProjectionAngles[3] = { NULL, NULL, NULL };
   int sampleLength = NULL;
   float* transformationMatrix = NULL;
   float* lowerBound = NULL;
@@ -57,6 +58,9 @@ int _tmain(int argc, _TCHAR* argv[])
     }
     ifs.read((char*) (void*) sampleProjection, sizeof(float) * sampleLength);
 
+    ifs.read((char*) (void*) sampleProjectionAngles, sizeof(double) * 3);
+
+
     ifs.read((char*) (void*) &n, sizeof(n));
     transformationMatrix = (float*) malloc(sizeof(float) * n);
     lowerBound = (float*) malloc(sizeof(float) * n);
@@ -95,7 +99,7 @@ int _tmain(int argc, _TCHAR* argv[])
     ifs.close();
   }
 
-  match_atlas(object, xshape, yshape, sampleProjection, n, transformationMatrix, lowerBound, upperBound, centre, &iter_v, &st_cr_v, &r1_v, &r2_v);
+  match_atlas(object, xshape, yshape, sampleProjection, sampleProjectionAngles, n, transformationMatrix, lowerBound, upperBound, centre, &iter_v, &st_cr_v, &r1_v, &r2_v);
 
   /*std::ofstream ofs;
   ofs.open("D:\\work\\uni\\FYP\\workingData\\results.bin", std::ios_base::binary | std::ios_base::trunc);

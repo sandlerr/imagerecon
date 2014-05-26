@@ -15,6 +15,7 @@
 			<Item Name="bp_work_unit.ctl" Type="VI" URL="../bp_work_unit.ctl"/>
 			<Item Name="fp_comp_input.ctl" Type="VI" URL="../fp_comp_input.ctl"/>
 			<Item Name="pixels_for_proj.ctl" Type="VI" URL="../pixels_for_proj.ctl"/>
+			<Item Name="sample_from_atlas_props.ctl" Type="VI" URL="../sample_from_atlas_props.ctl"/>
 			<Item Name="tags_cluster.ctl" Type="VI" URL="../tags_cluster.ctl"/>
 		</Item>
 		<Item Name="Sub VIs" Type="Folder">
@@ -45,7 +46,7 @@
 				<Item Name="load-from-atlas.vi" Type="VI" URL="../load-from-atlas.vi"/>
 				<Item Name="queue-cleanup.vi" Type="VI" URL="../queue-cleanup.vi"/>
 				<Item Name="resume-from-progress.vi" Type="VI" URL="../resume-from-progress.vi"/>
-				<Item Name="scale to u8.vi" Type="VI" URL="../scale to u8.vi"/>
+				<Item Name="scale to u8 no histogram.vi" Type="VI" URL="../scale to u8 no histogram.vi"/>
 			</Item>
 			<Item Name="art_pass.vi" Type="VI" URL="../art_pass.vi"/>
 			<Item Name="forward proj comparison.vi" Type="VI" URL="../forward proj comparison.vi"/>
@@ -62,13 +63,11 @@
 				<Item Name="Draw Flattened Pixmap.vi" Type="VI" URL="/&lt;vilib&gt;/picture/picture.llb/Draw Flattened Pixmap.vi"/>
 				<Item Name="FixBadRect.vi" Type="VI" URL="/&lt;vilib&gt;/picture/pictutil.llb/FixBadRect.vi"/>
 				<Item Name="imagedata.ctl" Type="VI" URL="/&lt;vilib&gt;/picture/picture.llb/imagedata.ctl"/>
-				<Item Name="NI_AALPro.lvlib" Type="Library" URL="/&lt;vilib&gt;/Analysis/NI_AALPro.lvlib"/>
 				<Item Name="Space Constant.vi" Type="VI" URL="/&lt;vilib&gt;/dlg_ctls.llb/Space Constant.vi"/>
 				<Item Name="Trim Whitespace.vi" Type="VI" URL="/&lt;vilib&gt;/Utility/error.llb/Trim Whitespace.vi"/>
 				<Item Name="whitespace.ctl" Type="VI" URL="/&lt;vilib&gt;/Utility/error.llb/whitespace.ctl"/>
 			</Item>
 			<Item Name="labviewdll.dll" Type="Document" URL="../../imagereconstruction/x64/Debug/labviewdll.dll"/>
-			<Item Name="lvanlys.dll" Type="Document" URL="/&lt;resource&gt;/lvanlys.dll"/>
 		</Item>
 		<Item Name="Build Specifications" Type="Build">
 			<Item Name="Main" Type="EXE">

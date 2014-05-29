@@ -69,6 +69,7 @@
 				<Item Name="whitespace.ctl" Type="VI" URL="/&lt;vilib&gt;/Utility/error.llb/whitespace.ctl"/>
 			</Item>
 			<Item Name="labviewdll.dll" Type="Document" URL="../../imagereconstruction/x64/Debug/labviewdll.dll"/>
+			<Item Name="labviewdll.dll" Type="Document" URL="../../imagereconstruction/x64/Release/labviewdll.dll"/>
 			<Item Name="lvanlys.dll" Type="Document" URL="/&lt;resource&gt;/lvanlys.dll"/>
 		</Item>
 		<Item Name="Build Specifications" Type="Build">

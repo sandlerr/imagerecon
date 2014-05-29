@@ -44,7 +44,7 @@ _declspec (dllexport) void tvIteration(float* f, const int xshape, const int ysh
     getPixelsForProjection(xshape, angles[i], centre, normalisation, pixels, count);
     sliceFPf(f, P + i * xshape, normalisation, xshape, rayNormalisation, pixels, count);
     normaliseArrayf(xshape, rayNormalisation, P + i * xshape);
-    memset(normalisation, 0, xshape*yshape*  sizeof(int))
+    memset(normalisation, 0, xshape*yshape*  sizeof(int));
   }
 
   free(normalisation);
@@ -68,15 +68,9 @@ _declspec (dllexport) void tvIteration(float* f, const int xshape, const int ysh
 
 _declspec (dllexport) void artIteration(float* object, const float* actualProjection, const int w, int32_t* rayNormalisation, int32_t* pixels, int32_t* count)
 {
-  int* normalisation = (int*) malloc(sizeof(int) * w);
-  float* forwardProjection = (float*) malloc(sizeof(float) * w);
-  float* newProjection = (float*) malloc(sizeof(float) * w);
-  for (int i = 0; i < w; i++)
-  {
-    normalisation[i] = 0;
-    forwardProjection[i] = 0;
-    newProjection[i] = 0;
-  }
+  int* normalisation = (int*) calloc(w, sizeof(int));
+  float* forwardProjection = (float*) calloc(w, sizeof(float));
+  float* newProjection = (float*) calloc(w, sizeof(float));
 
   sliceFPf(object, forwardProjection, normalisation, w, rayNormalisation, pixels, count);
   normaliseArrayf(w, normalisation, forwardProjection);

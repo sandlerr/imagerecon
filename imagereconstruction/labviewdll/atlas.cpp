@@ -25,14 +25,10 @@ _declspec (dllexport) void transform2dproj(const float rotation, const float* tr
   float addToX = translationMatrix[0];
   float addToY = translationMatrix[1];
   int numPoints = xshape * yshape;
-  int* normalisation = (int*) malloc(3 * xshape*xshape*sizeof(int));
-  memset(normalisation, 0, 3 * xshape*xshape*sizeof(int));
-  int* pixels = (int*) malloc(3 * xshape*xshape*sizeof(int));
-  memset(pixels, 0, 3 * xshape*xshape*sizeof(int));
-  int* count = (int*) malloc(3 * xshape*sizeof(int));
-  memset(count, 0, 3 * xshape*sizeof(int));
-  int* rayNormalisation = (int*) malloc(3 * xshape*sizeof(int));
-  memset(rayNormalisation, 0, 3 * xshape*sizeof(int));
+  int* normalisation = (int*) calloc(3 * xshape*xshape, sizeof(int));
+  int* pixels = (int*) calloc(3 * xshape*xshape, sizeof(int));
+  int* count = (int*) calloc(3 * xshape, sizeof(int));
+  int* rayNormalisation = (int*) calloc(3 * xshape, sizeof(int));
   int old_x = -1;
   int old_y = 0;
 
